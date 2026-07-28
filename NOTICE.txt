@@ -1,0 +1,25 @@
+This product includes software developed by:
+
+The ExifTool Project (Phil Harvey)
+  - https://exiftool.org/
+  - Original software under Perl Artistic License
+
+Microsoft Corporation
+  - TypeScript
+  - https://github.com/Microsoft/TypeScript
+
+Meta Platforms, Inc.
+  - React, React DOM
+  - https://github.com/facebook/react
+
+Vite Contributors
+  - Vite
+  - https://github.com/vitejs/vite
+
+Tailwind Labs Inc.
+  - Tailwind CSS
+  - https://github.com/tailwindlabs/tailwindcss
+
+And all other open-source contributors whose works made this project possible.
+
+Full attribution and license details are available in ATTRIBUTION.md.

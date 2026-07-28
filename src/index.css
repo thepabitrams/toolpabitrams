@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   BASE LAYER — Keep only essential styles
+   ============================================================ */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 antialiased;
+  }
+
+  /* Scrollbar — Google-style thin */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+  }
+
+  /* Typography utilities (keep these – not animations) */
+  .tool-title {
+    @apply text-base font-medium text-gray-900 dark:text-white;
+  }
+
+  .tool-description {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .tool-label {
+    @apply text-xs text-gray-400 dark:text-gray-500;
+  }
+
+  /* Skeleton Loading (if you use it – keep it) */
+  .skeleton-pulse {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
+  }
+
+  /* Grid Layout (keep) */
+  .tool-grid {
+    @apply grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 sm:gap-6;
+  }
+}
