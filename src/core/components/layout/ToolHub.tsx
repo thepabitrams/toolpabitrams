@@ -9,15 +9,16 @@ import { useToolUsage } from '@/core/hooks/useToolUsage';
 
 interface ToolHubProps {
   variant?: 'grid' | 'list';
-  /** 🔥 Filter by category and/or input from Action Button */
   category?: string | null;
   input?: string | null;
+  onToolSelect?: (toolId: string) => void;
 }
 
-export function ToolHub({ 
-  variant = 'grid', 
-  category = null, 
-  input = null 
+export function ToolHub({
+  variant = 'grid',
+  category = null,
+  input = null,
+  onToolSelect,
 }: ToolHubProps) {
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -36,6 +37,7 @@ export function ToolHub({
           variant={variant}
           loading={loading}
           currentToolId={currentToolId}
+          onToolSelect={onToolSelect}
         />
       </Container>
     </div>

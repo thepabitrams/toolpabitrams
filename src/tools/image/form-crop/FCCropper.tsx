@@ -17,9 +17,9 @@ import { injectImageMetadata } from '@/entities/image/services/writeMetadata';
 interface FCCropperProps {
   file: FileRef | null;
   aspectRatio: number;
-  targetWidthPx: number;   // final width in pixels
-  targetHeightPx: number;  // final height in pixels
-  inputDpi?: number;       // DPI value for metadata injection (default 96)
+  targetWidthPx: number;
+  targetHeightPx: number;
+  inputDpi?: number;
   onCrop: (blob: Blob, name: string) => Promise<void>;
   className?: string;
   minWidth?: number;
@@ -42,7 +42,7 @@ export const FCCropper: React.FC<FCCropperProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const { read, readFile } = useFileStore(); // 👈 Added readFile
+  const { read, readFile } = useFileStore();
 
   const {
     crop,
@@ -76,8 +76,8 @@ export const FCCropper: React.FC<FCCropperProps> = ({
           objectUrl = URL.createObjectURL(blob);
           setImageUrl(objectUrl);
         }
-      } catch (error) {
-        console.error('CropCard: Failed to fetch image:', error);
+      } catch {
+        // Silent fail
       }
     };
 
@@ -97,43 +97,31 @@ export const FCCropper: React.FC<FCCropperProps> = ({
 
   const handleCrop = useCallback(async () => {
     if (!file || !croppedAreaPixels || !imageUrl) {
-      console.warn("Crop: No file or crop area");
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      // 1️⃣ Get the ORIGINAL File from OPFS (not Blob!)
       const originalFile = await readFile(file.storageKey);
       if (!originalFile) throw new Error("Failed to read file");
 
-      // 2️⃣ CROP (cut out the user-selected area)
       const croppedBlob = await cropImage(originalFile, croppedAreaPixels, rotation);
-
-      // 3️⃣ RESIZE to exact target pixel dimensions
       const resizedBlob = await resizeImage(croppedBlob, targetWidthPx, targetHeightPx);
-
-      // 4️⃣ 👈 Convert resized Blob to File for metadata injection
       const resizedFile = new File([resizedBlob], file.name, { type: resizedBlob.type });
-
-      // 5️⃣ Inject DPI metadata – pass the File directly (tags as object in writeMetadata)
       const finalBlob = await injectImageMetadata(resizedFile, inputDpi);
 
-      // 6️⃣ Generate filename and save
       const extension = finalBlob.type.split('/')[1] || 'jpg';
       const newName = file.name.replace(/\.[^.]+$/, '') + `_cropped_${targetWidthPx}x${targetHeightPx}.${extension}`;
 
       await onCrop(finalBlob, newName);
-
-    } catch (error) {
-      console.error("Crop: Failed:", error);
+    } catch {
+      // Silent fail - error will be handled by caller
     } finally {
       setIsProcessing(false);
     }
   }, [file, croppedAreaPixels, rotation, targetWidthPx, targetHeightPx, inputDpi, onCrop, imageUrl, readFile]);
 
-  // --- UI (UNCHANGED) ---
   if (!file || !imageUrl) {
     return (
       <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>

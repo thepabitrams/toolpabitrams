@@ -17,22 +17,17 @@ export async function injectImageMetadata(
   const tags = {
     'XResolution': Math.round(dpi),
     'YResolution': Math.round(dpi),
-    'ResolutionUnit': 'inches', // ✅ STRING, not number!
+    'ResolutionUnit': 'inches',
   };
-
-  console.log(`📝 Injecting DPI ONLY: ${Math.round(dpi)} DPI`);
 
   try {
     const result = await writeMetadata(file, tags);
     if (result.success) {
-      console.log('✅ DPI injected successfully');
       return new Blob([result.data], { type: file.type });
     } else {
-      console.warn('⚠️ DPI injection failed:', result.error);
       return file;
     }
-  } catch (error) {
-    console.error('❌ DPI injection error:', error);
+  } catch {
     return file;
   }
 }

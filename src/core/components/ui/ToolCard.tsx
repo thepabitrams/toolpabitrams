@@ -7,16 +7,18 @@ import type { Tool } from '@/core/registry/toolRegistry';
 import { Motion } from '@/core/motion/motion';
 import { toolCardGridMotion, toolCardListMotion } from '@/core/motion/compositions/toolCard';
 import { marqueeSwing } from '@/core/motion/presets/marqueeSwing';
-import { injectKeyframes } from '@/core/motion/injection'; // 👈 IMPORT
+import { injectKeyframes } from '@/core/motion/injection';
 
 interface ToolCardProps {
   tool: Tool;
   variant?: 'grid' | 'list';
+  onToolSelect?: (toolId: string) => void;
 }
 
 export const ToolCard = memo(function ToolCard({
   tool,
   variant = 'grid',
+  onToolSelect,
 }: ToolCardProps) {
   const navigate = useNavigate();
   const { favorites, toggleFavorite, incrementUsage } = useToolStore();
@@ -24,7 +26,12 @@ export const ToolCard = memo(function ToolCard({
 
   const handleClick = () => {
     incrementUsage(tool.id);
-    navigate(`/${tool.id}`);
+    
+    if (onToolSelect) {
+      onToolSelect(tool.id);
+    } else {
+      navigate(`/${tool.id}`);
+    }
   };
 
   const handleFavorite = (e: React.MouseEvent) => {
@@ -35,7 +42,6 @@ export const ToolCard = memo(function ToolCard({
   const textRef = useRef<HTMLHeadingElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
-  // 👇 MANUAL INJECTION - Clean and direct!
   const injectedRef = useRef(false);
   useEffect(() => {
     if (!injectedRef.current) {

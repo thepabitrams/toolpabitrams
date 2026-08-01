@@ -8,9 +8,9 @@ interface ToolCatalogProps {
   variant: 'grid' | 'list';
   loading: boolean;
   currentToolId: string | null;
+  onToolSelect?: (toolId: string) => void;
 }
 
-// 🔥 SKELETONS INSIDE THIS FILE
 const SkeletonCard = () => (
   <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-xs border border-gray-200/50 dark:border-gray-800/50 animate-pulse w-full max-w-[280px] mx-auto">
     <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 ml-auto mb-4" />
@@ -27,8 +27,14 @@ const SkeletonRow = () => (
   </div>
 );
 
-export function ToolCatalog({ tools, variant, loading, currentToolId }: ToolCatalogProps) {
-  // 🔥 LOADING STATE: Show skeletons
+export function ToolCatalog({
+  tools,
+  variant,
+  loading,
+  currentToolId,
+  onToolSelect,
+}: ToolCatalogProps) {
+  // 🔥 LOADING STATE
   if (loading) {
     if (variant === 'list') {
       return (
@@ -66,18 +72,27 @@ export function ToolCatalog({ tools, variant, loading, currentToolId }: ToolCata
                 : ''
             }`}
           >
-            <ToolCard tool={tool} variant="list" />
+            <ToolCard
+              tool={tool}
+              variant="list"
+              onToolSelect={onToolSelect}
+            />
           </div>
         ))}
       </div>
     );
   }
 
-  // 🔥 GRID VIEW (default) — using your Grid component
+  // 🔥 GRID VIEW
   return (
     <Grid minCardWidth={200} gap={16} className="pt-6">
       {tools.map((tool) => (
-        <ToolCard key={tool.id} tool={tool} variant="grid" />
+        <ToolCard
+          key={tool.id}
+          tool={tool}
+          variant="grid"
+          onToolSelect={onToolSelect}
+        />
       ))}
     </Grid>
   );

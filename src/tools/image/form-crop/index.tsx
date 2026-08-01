@@ -1,5 +1,3 @@
-// src/tools/image/form-crop/index.tsx
-
 import { useState, useEffect, useCallback } from 'react';
 import { Tool } from '@/core/registry/toolRegistry';
 import { useFileStore } from '@/core/store/fileStore';
@@ -24,7 +22,7 @@ interface FormCropToolProps {
 }
 
 function FormCropTool({ category, toolId }: FormCropToolProps) {
-  const { list, upload, save, clear, promote } = useFileStore();
+  const { list, upload, save, clear, promote, remove } = useFileStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const originalFiles = list('original');
@@ -75,48 +73,88 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
     }
   }, [save]);
 
-  const handleAction = useCallback(async (selectedToolId: string) => {
-    await promote();
-    window.location.href = `/tools/${selectedToolId}`;
-  }, [promote]);
+  const handleAction = useCallback(
+    async (selectedToolId: string, variant: 'single' | 'multiple') => {
+      if (!selectedToolId) {
+        alert('Error: No tool selected.');
+        return;
+      }
 
-  // ============================================================
-  // 👇 THE CRITICAL PART: handleSizeChange receives widthPx, heightPx, AND dpi
-  // ============================================================
+      const processedFiles = list('process');
+      if (processedFiles.length === 0) {
+        alert('No processed files to promote');
+        return;
+      }
+
+      const latestName = processedFiles[processedFiles.length - 1]?.name;
+
+      const state = useFileStore.getState();
+      const targetOriginals = state.original.filter(f => f.toolId === selectedToolId);
+
+      if (targetOriginals.length > 0) {
+        const userChoice = window.confirm(
+          `The target tool already has ${targetOriginals.length} file(s).\n\n` +
+          `• Click "OK" → REPLACE (delete old files, use new ones)\n` +
+          `• Click "Cancel" → KEEP (add new files, keep old ones)`
+        );
+
+        if (userChoice) {
+          for (const ref of targetOriginals) {
+            await remove(ref.storageKey);
+          }
+          useFileStore.setState((prevState) => ({
+            original: prevState.original.filter(f => f.toolId !== selectedToolId),
+          }));
+          await syncToDB(
+            useFileStore.getState().original,
+            useFileStore.getState().process
+          );
+        }
+      }
+
+      if (variant === 'single' && latestName) {
+        await promote(latestName, selectedToolId);
+      } else {
+        await promote(undefined, selectedToolId);
+      }
+
+      window.location.href = `/${selectedToolId}`;
+    },
+    [list, promote, remove]
+  );
+
   const handleSizeChange = (
-    widthPx: number,    // 👈 DPI-converted width in pixels
-    heightPx: number,   // 👈 DPI-converted height in pixels
-    rawWidth: number,   // 👈 Raw user input (e.g., 2)
-    rawHeight: number,  // 👈 Raw user input (e.g., 60)
-    unit: Unit,         // 👈 Unit: 'px', 'mm', 'cm', 'inch'
-    dpi: number         // 👈 DPI value (e.g., 96, 200)
+    widthPx: number,
+    heightPx: number,
+    rawWidth: number,
+    rawHeight: number,
+    unit: Unit,
+    dpi: number
   ) => {
     setCropData({
       rawWidth,
       rawHeight,
       unit,
-      dpi,              // 👈 Store DPI
-      widthPx,          // 👈 Store converted width in pixels
-      heightPx,         // 👈 Store converted height in pixels
+      dpi,
+      widthPx,
+      heightPx,
     });
   };
 
-  // ============================================================
-  // 👇 aspectRatio uses widthPx and heightPx (which already include DPI)
-  // ============================================================
   const aspectRatio = cropData.widthPx / cropData.heightPx;
 
   const hasFile = !!currentFile;
   const hasProcessed = !!latestProcessed;
 
+  async function syncToDB(original: any[], process: any[]) {
+    const { saveCatalog } = await import('@/core/services/indexeddb');
+    await saveCatalog({ original, process });
+  }
+
   return (
     <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
-      {/* 🚀 HEADER REMOVED - Clean layout starts here */}
-      
       <Grid minCardWidth={360} gap={16}>
         <Stagger delay={100}>
-          
-          {/* ✅ Upload */}
           <Motion
             preset={zoomIn}
             as="div"
@@ -137,7 +175,6 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
             />
           </Motion>
 
-          {/* ✅ Dimension Input */}
           {hasFile && (
             <Motion
               preset={zoomIn}
@@ -157,7 +194,6 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
             </Motion>
           )}
 
-          {/* ✅ Cropper */}
           {hasFile && (
             <Motion
               preset={zoomIn}
@@ -180,7 +216,6 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
             </Motion>
           )}
 
-          {/* ✅ File Card */}
           {hasProcessed && (
             <Motion
               preset={zoomIn}
@@ -199,7 +234,6 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
             </Motion>
           )}
 
-          {/* ✅ Export Panel */}
           {hasProcessed && (
             <Motion
               preset={zoomIn}
@@ -214,13 +248,13 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
                 initialFileName={`${cropData.rawWidth}x${cropData.rawHeight}`}
                 onClear={clear}
                 toolId={toolId}
+                onToolSelect={handleAction}
                 minWidth={360}
                 minHeight={200}
                 padding={0}
               />
             </Motion>
           )}
-          
         </Stagger>
       </Grid>
     </div>

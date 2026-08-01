@@ -1,4 +1,3 @@
-// src/shared/components/ExportPanel.tsx
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/core/components/ui/Button';
 import { ActionButton } from '@/shared/components/ActionButton';
@@ -14,7 +13,8 @@ interface ExportPanelProps {
   variant: 'single' | 'multiple';
   initialFileName?: string;
   onClear: () => Promise<void>;
-  toolId: string; // 👈 NEW PROP
+  toolId: string;
+  onToolSelect: (selectedToolId: string, variant: 'single' | 'multiple') => Promise<void>;
   className?: string;
   minWidth?: number;
   minHeight?: number;
@@ -44,7 +44,8 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   variant,
   initialFileName = 'download',
   onClear,
-  toolId, // 👈 DESTRUCTURE
+  toolId,
+  onToolSelect,
   className = '',
   minWidth = 260,
   minHeight = 200,
@@ -84,8 +85,8 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       setTimeout(() => URL.revokeObjectURL(url), 1000);
 
       await onClear();
-    } catch (error) {
-      console.error('Download failed:', error);
+    } catch {
+      // Silent fail - user will see nothing happened
     } finally {
       setIsDownloading(false);
     }
@@ -132,13 +133,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         <div className="border-t border-gray-200/60 dark:border-gray-700/60 my-2" />
 
         <div className="flex items-center justify-between gap-3 mt-auto pt-1">
-          {/* ✅ FIXED: Pass the dynamic toolId */}
-          <ActionButton 
-            toolId={toolId} // 👈 DYNAMIC
-            className="flex-1" 
-            onToolSelect={async (id) => {
-              console.log('Tool selected:', id);
-            }}
+          <ActionButton
+            toolId={toolId}
+            variant={variant}
+            onToolSelect={onToolSelect}
+            className="flex-1"
           />
           <Button
             onClick={handleDownload}

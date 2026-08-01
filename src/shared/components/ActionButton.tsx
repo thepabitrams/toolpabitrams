@@ -1,19 +1,19 @@
-// src/shared/components/ActionButton.tsx
-
 import React from 'react';
 import { Button } from '@/core/components/ui/Button';
 import { ToolHub } from '@/core/components/layout/ToolHub';
 import { useAction } from '@/shared/hooks/useAction';
-import { Overlay } from '@/core/motion/components/overlay'; // 👈 NEW PATH
+import { Overlay } from '@/core/motion/components/overlay';
 
 interface ActionButtonProps {
   toolId: string;
+  variant: 'single' | 'multiple';
   className?: string;
-  onToolSelect: (toolId: string) => Promise<void>;
+  onToolSelect: (selectedToolId: string, variant: 'single' | 'multiple') => Promise<void>;
 }
 
 export const ActionButton: React.FC<ActionButtonProps> = ({
   toolId,
+  variant,
   className = '',
   onToolSelect,
 }) => {
@@ -25,7 +25,8 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   } = useAction({ toolId });
 
   const handleSelect = async (selectedToolId: string) => {
-    await onToolSelect(selectedToolId);
+    if (!selectedToolId) return;
+    await onToolSelect(selectedToolId, variant);
     close();
   };
 
@@ -44,7 +45,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
           ${className}
         `}
       >
-        <span>Action</span>
+        <span>{variant === 'single' ? 'Action' : 'Action (All)'}</span>
       </Button>
 
       <Overlay isOpen={isOpen} onClose={close}>

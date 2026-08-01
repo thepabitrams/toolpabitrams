@@ -3,12 +3,12 @@ import { HomePage } from '@/pages/HomePage';
 import { ToolPage } from '@/pages/ToolPage';
 import { useEffect, useState } from 'react';
 import { useThemeStore } from '@/core/store/themeStore';
-import { useFileStore } from '@/core/store/fileStore'; // ✅ ADD THIS
+import { useFileStore } from '@/core/store/fileStore';
 
 function App() {
   const { theme, setSystemTheme } = useThemeStore();
-  const init = useFileStore((state) => state.init); // ✅ GET THE INIT FUNCTION
-  const [isReady, setIsReady] = useState(false); // ✅ TRACK LOADING STATE
+  const init = useFileStore((state) => state.init);
+  const [isReady, setIsReady] = useState(false);
 
   // --- Theme Initialization ---
   useEffect(() => {
@@ -19,23 +19,22 @@ function App() {
     }
   }, [theme, setSystemTheme]);
 
-  // --- Storage Initialization (NEW) ---
+  // --- Storage Initialization ---
   useEffect(() => {
     const initializeStorage = async () => {
       try {
-        await init(); // Restores from IndexedDB + runs garbage collection
-        console.log('📦 FileStore initialized successfully');
-      } catch (error) {
-        console.error('❌ Failed to initialize FileStore:', error);
+        await init();
+      } catch {
+        // Silent fail - app will still render
       } finally {
-        setIsReady(true); // App is ready to render
+        setIsReady(true);
       }
     };
 
     initializeStorage();
   }, [init]);
 
-  // --- Show loading screen while storage initializes (optional) ---
+  // --- Show loading screen while storage initializes ---
   if (!isReady) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
