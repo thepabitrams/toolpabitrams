@@ -156,4 +156,3 @@ MIT License – see [LICENSE](./LICENSE) file.
 ## Acknowledgments
 
 Built with a modular, scalable architecture for maintainability and developer experience.
-```
