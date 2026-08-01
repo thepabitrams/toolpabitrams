@@ -1,17 +1,19 @@
 # ToolPabitraMS
 
-A personal, client-side image processing and utility toolkit built with React, TypeScript, and Vite.
+ToolPabitraMS is a personal, client-side utility toolkit built with React, TypeScript, and Vite.
 
-All operations run entirely in the browser. No servers, no uploads, no data leaves your machine.
+All processing happens entirely in your browser. Files are never sent to any server. Your data stays private and local.
 
 ---
 
 ## Features
 
-- Browser-based image processing with local file storage
-- Extensible tool architecture for adding new operations
-- Progressive Web App support for offline usage
-- Clean, responsive UI with dark mode support
+- All processing runs locally in your browser – privacy-first, no server uploads
+- Modular tool architecture – add new utilities without touching existing code
+- Offline-ready – works without internet via service workers
+- Clean, responsive design – works on desktop and mobile devices
+- Dark mode support – comfortable viewing in any environment
+- Persistent local storage – files stay saved until you remove them
 
 ---
 
@@ -22,9 +24,9 @@ All operations run entirely in the browser. No servers, no uploads, no data leav
 - Vite
 - Tailwind CSS
 - Zustand
-- React Router
+- React Router DOM
 - IndexedDB / OPFS
-- Workbox
+- Custom Motion Engine
 
 ---
 
@@ -144,12 +146,6 @@ This is a personal toolkit. For forks or adaptations:
 2. Create a feature branch.
 3. Commit changes with clear messages.
 4. Open a pull request.
-
----
-
-## License
-
-MIT License – see [LICENSE](./LICENSE) file.
 
 ---
 
