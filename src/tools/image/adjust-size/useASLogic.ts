@@ -1,4 +1,3 @@
-// src/tools/image/adjust-size/useASLogic.ts
 import { useState, useCallback } from 'react';
 import { extractImageMetadata } from '@/entities/image/services/readMetadata';
 import { injectImageMetadata } from '@/entities/image/services/writeMetadata';
@@ -156,7 +155,6 @@ export function useASLogic() {
       maxKB: number,
       onProgress?: (data: ProgressData) => void
     ): Promise<ProcessResult> => {
-      console.log('🚀 Canvas process() STARTED');
       setIsProcessing(true);
       setProgress(null);
 
@@ -166,7 +164,6 @@ export function useASLogic() {
         const dpi = metadata.dpi || 300;
         const originalWidth = metadata.width || 0;
         const originalHeight = metadata.height || 0;
-        console.log(`📋 Original: ${originalWidth}x${originalHeight}, ${dpi} DPI`);
 
         if (originalWidth === 0 || originalHeight === 0) {
           throw new Error('Could not read image dimensions');
@@ -192,7 +189,6 @@ export function useASLogic() {
 
         // ─── 3. Already in range? ──────────────────────────────────
         if (originalSizeKB >= minKB && originalSizeKB <= maxKB) {
-          console.log('✅ Already in range');
           const finalFile = new File([file], 'output.jpg', { type: file.type });
           const finalBlob = await injectImageMetadata(finalFile, dpi);
           setIsProcessing(false);
@@ -201,7 +197,6 @@ export function useASLogic() {
 
         // ─── 4. Too small – INCREASE ──────────────────────────────
         if (originalSizeKB < minKB) {
-          console.log(`📈 Too small (${originalSizeKB.toFixed(1)}KB), increasing...`);
           const blob = await increaseSize(imageData, originalWidth, originalHeight, minKB);
           const finalFile = new File([blob], 'output.jpg', { type: blob.type });
           const finalBlob = await injectImageMetadata(finalFile, dpi);
@@ -214,8 +209,6 @@ export function useASLogic() {
         }
 
         // ─── 5. Too large – COMPRESS ──────────────────────────────
-        console.log(`📉 Too large (${originalSizeKB.toFixed(1)}KB), compressing to ≤ ${maxKB}KB`);
-
         const strategies: Array<'quality' | 'subsample' | 'posterize' | 'blur' | 'all'> = [
           'quality', 'subsample', 'posterize', 'blur', 'all'
         ];
@@ -226,7 +219,6 @@ export function useASLogic() {
         const MAX_ITERATIONS = 30;
 
         for (const strategy of strategies) {
-          console.log(`📌 Strategy: ${strategy}`);
           let low = 1, high = 100;
           let strategyBestBlob: Blob | null = null;
           let strategyBestSize = Infinity;
@@ -235,7 +227,6 @@ export function useASLogic() {
           while (low <= high && iterations < MAX_ITERATIONS) {
             iterations++;
             const quality = Math.floor((low + high) / 2);
-            console.log(`🔁 Iter ${iterations}: ${strategy}, quality=${quality}`);
 
             const blob = await encodeWithCanvas(imageData, originalWidth, originalHeight, quality, strategy);
             const sizeKB = blob.size / 1024;
@@ -244,7 +235,6 @@ export function useASLogic() {
             const progressData: ProgressData = { quality, sizeKB, type: 'compress', iteration: iterations, strategy };
             setProgress(progressData);
             onProgress?.(progressData);
-            console.log(`   → Size: ${sizeKB.toFixed(1)}KB`);
 
             // Global best
             if (sizeKB < globalBestSize) {
@@ -254,7 +244,6 @@ export function useASLogic() {
 
             // Within range?
             if (sizeKB >= minKB && sizeKB <= maxKB) {
-              console.log(`✅ Target hit! Quality ${quality}, size ${sizeKB.toFixed(1)}KB`);
               const finalFile = new File([blob], 'output.jpg', { type: blob.type });
               const finalBlob = await injectImageMetadata(finalFile, dpi);
               setIsProcessing(false);
@@ -263,7 +252,7 @@ export function useASLogic() {
 
             // Stuck?
             if (Math.abs(sizeKB - prevSize) < 0.1) {
-              if (++stuck >= 3) { console.log(`   ⏹️ Stuck, moving on.`); break; }
+              if (++stuck >= 3) break;
             } else { stuck = 0; }
             prevSize = sizeKB;
 
@@ -289,7 +278,6 @@ export function useASLogic() {
 
           // If strategy got size <= max, we can stop (since we want smallest)
           if (strategyBestBlob && strategyBestSize <= maxKB) {
-            console.log(`📊 Strategy ${strategy} got ${strategyBestSize.toFixed(1)}KB (≤ max).`);
             break;
           }
         }
@@ -307,14 +295,12 @@ export function useASLogic() {
         }
 
         // ─── Absolute fallback ────────────────────────────────────
-        console.warn(`⚠️ No compression possible. Returning original.`);
         const finalFile = new File([file], 'output.jpg', { type: file.type });
         const finalBlob = await injectImageMetadata(finalFile, dpi);
         setIsProcessing(false);
         return createResult(finalBlob, minKB, maxKB, 'Processing failed. Original returned.');
 
       } catch (err) {
-        console.error('❌ Processing error:', err);
         setIsProcessing(false);
         // Return original file as fallback
         const fallbackBlob = file;

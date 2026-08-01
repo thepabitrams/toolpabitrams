@@ -1,4 +1,3 @@
-// src/tools/image/adjust-size/index.tsx
 import { useState, useCallback } from 'react';
 import { Tool } from '@/core/registry/toolRegistry';
 import { useFileStore } from '@/core/store/fileStore';
@@ -38,13 +37,11 @@ function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
 
   const handleUpload = useCallback(
     async (files: File[]) => {
-      console.log('📤 [handleUpload] Uploading files:', files.length);
       setIsLoading(true);
       try {
         await upload(files);
-        console.log('✅ [handleUpload] Upload complete');
       } catch (error) {
-        console.error('❌ Upload failed:', error);
+        // silent
       } finally {
         setIsLoading(false);
       }
@@ -53,19 +50,13 @@ function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
   );
 
   const handleRemove = useCallback(async () => {
-    console.log('🗑️ [handleRemove] Removing file');
     if (currentFile) {
       await clear();
-      console.log('✅ [handleRemove] File removed');
     }
   }, [currentFile, clear]);
 
   const handleProcess = useCallback(async () => {
-    console.log('🖱️ [handleProcess] Button clicked');
-    console.log(`📊 Min: ${minKB}KB, Max: ${maxKB}KB`);
-
     if (!currentFile) {
-      console.warn('⚠️ [handleProcess] No file');
       return;
     }
     if (minKB >= maxKB) {
@@ -78,20 +69,14 @@ function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
     try {
       const file = await readFile(currentFile.storageKey);
       if (!file) throw new Error('Failed to read file');
-      console.log(`✅ [handleProcess] File loaded: ${file.name}, ${file.size} bytes`);
 
-      console.log('⏳ [handleProcess] Calling process()...');
       const result = await process(file, minKB, maxKB);
       
       if (!result || !result.blob) {
         throw new Error('Processing failed: No blob returned');
       }
-      
-      console.log(`✅ [handleProcess] process() returned blob: ${result.blob.size} bytes`);
-      console.log(`📊 Size: ${result.sizeKB.toFixed(1)}KB, Within range: ${result.isWithinRange}`);
 
       if (!result.isWithinRange && result.error) {
-        console.warn('⚠️', result.error);
         alert(`⚠️ ${result.error}`);
       }
 
@@ -103,22 +88,17 @@ function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
         `adjusted-${minKB}-${maxKB}KB.${ext}`,
         { type: blobType }
       );
-      console.log(`⏳ [handleProcess] Saving to store`);
       await save([resultFile]);
-      console.log('✅ [handleProcess] Save complete!');
       
     } catch (error) {
-      console.error('❌ [handleProcess] Processing failed:', error);
       alert(`Processing failed: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
-      console.log('🏁 [handleProcess] FINISHED');
       setIsLoading(false);
     }
   }, [currentFile, minKB, maxKB, process, save, readFile]);
 
   const handleAction = useCallback(
     async (selectedToolId: string) => {
-      console.log('🔄 [handleAction] Promoting to:', selectedToolId);
       await promote();
       window.location.href = `/tools/${selectedToolId}`;
     },
