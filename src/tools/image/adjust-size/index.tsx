@@ -1,3 +1,4 @@
+// src/tools/image/adjust-size/index.tsx
 import { useState, useCallback } from 'react';
 import { Tool } from '@/core/registry/toolRegistry';
 import { useFileStore } from '@/core/store/fileStore';
@@ -7,16 +8,17 @@ import { Motion } from '@/core/motion/motion';
 import { Stagger } from '@/core/motion/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { ExportPanel } from '@/shared/components/ExportPanel';
-import type { CategoryType } from '@/shared/components/FileUpload';
-
 import { Grid } from '@/core/components/ui/Grid';
 import { ASCard } from './ASCard';
 import { useASLogic } from './useASLogic';
 
+// 👇 IMPORT IMAGE CONFIG
+import { IMAGE_CONFIG } from '@/entities/image/services/config';
+
 const TOOL_ID = 'adjust-size';
 
 interface AdjustSizeToolProps {
-  category: CategoryType;
+  category: string;
   toolId: string;
 }
 
@@ -166,7 +168,9 @@ function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
             <FileUpload
               file={currentFile}
               variant="single"
-              category={category}
+              accept={IMAGE_CONFIG.accept}          // 👈 PASS ACCEPT
+              label={IMAGE_CONFIG.label}            // 👈 PASS LABEL
+              extensions={IMAGE_CONFIG.extensions}  // 👈 PASS EXTENSIONS
               isLoading={isLoading}
               onUpload={handleUpload}
               onRemove={handleRemove}

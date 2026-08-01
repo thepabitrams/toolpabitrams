@@ -1,5 +1,4 @@
 // src/shared/components/FileUpload.tsx
-
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FileCard } from './FileCard';
@@ -7,12 +6,12 @@ import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
 import type { FileRef } from '@/core/store/fileStore';
 
-export type CategoryType = 'image' | 'pdf' | 'file';
-
 interface FileUploadProps {
   file: FileRef | null;
   variant: 'single' | 'multiple';
-  category: CategoryType;
+  accept: Record<string, string[]>; // 👈 PASS FROM TOOL
+  label: string;                    // 👈 PASS FROM TOOL
+  extensions?: string;              // 👈 PASS FROM TOOL (optional)
   isLoading?: boolean;
   onUpload: (files: File[]) => void;
   onRemove: () => void;
@@ -22,16 +21,12 @@ interface FileUploadProps {
   padding?: number;
 }
 
-const CATEGORY_CONFIG = {
-  image: { accept: { 'image/*': [] }, label: 'Image', extensions: 'jpg, png, webp' },
-  pdf: { accept: { 'application/pdf': [] }, label: 'PDF', extensions: 'pdf' },
-  file: { accept: { '*/*': [] }, label: 'File', extensions: 'zip, txt, doc' },
-} as const;
-
 export const FileUpload: React.FC<FileUploadProps> = ({
   file,
   variant,
-  category,
+  accept,
+  label,
+  extensions = '',
   isLoading = false,
   onUpload,
   onRemove,
@@ -40,8 +35,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   minHeight = 200,
   padding = 0,
 }) => {
-  const config = CATEGORY_CONFIG[category];
-
   const handleUpload = useCallback(
     (files: File[]) => {
       onUpload(files);
@@ -51,12 +44,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: handleUpload,
-    accept: config.accept,
+    accept: accept,
     maxFiles: variant === 'single' ? 1 : undefined,
     disabled: (variant === 'single' && !!file) || isLoading,
   });
 
-  // ─── If file exists, show FileCard (clean, no double wrapper) ───
   if (variant === 'single' && file) {
     return (
       <FileCard 
@@ -68,7 +60,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     );
   }
 
-  // ─── Otherwise, show the Dropzone with a Card wrapper ──────────
   return (
     <Container 
       className={`px-0 flex-1 ${className}`}
@@ -78,7 +69,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         padding: `${padding}px`,
       }}
     >
-      {/* ✅ Added hover={false} to avoid conflict with drag scale */}
       <Card className="p-1" hover={false}>
         <div
           {...getRootProps()}
@@ -108,9 +98,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({
               <p className={`text-sm font-medium transition-colors duration-200 ${
                 isDragActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
               }`}>
-                {isDragActive ? 'Drop it' : `Upload ${config.label}`}
+                {isDragActive ? 'Drop it' : `Upload ${label}`}
               </p>
-              <p className="text-[10px] text-gray-400 dark:text-gray-500">{config.extensions}</p>
+              {extensions && (
+                <p className="text-[10px] text-gray-400 dark:text-gray-500">{extensions}</p>
+              )}
             </div>
             {isLoading && <p className="text-xs text-blue-500 animate-pulse">Processing...</p>}
           </div>

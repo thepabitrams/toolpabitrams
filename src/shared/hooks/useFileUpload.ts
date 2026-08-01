@@ -1,23 +1,6 @@
 // src/shared/hooks/useFileUpload.ts
-
 import { useState, useCallback } from 'react';
 import { useFileStore } from '@/core/store/fileStore';
-
-function extractImageMetadata(file: File): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: img.width, height: img.height });
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-    img.src = url;
-  });
-}
 
 export function useFileUpload() {
   const [isLoading, setIsLoading] = useState(false);

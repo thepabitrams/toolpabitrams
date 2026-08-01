@@ -1,3 +1,4 @@
+// src/tools/image/form-crop/index.tsx
 import { useState, useEffect, useCallback } from 'react';
 import { Tool } from '@/core/registry/toolRegistry';
 import { useFileStore } from '@/core/store/fileStore';
@@ -9,15 +10,17 @@ import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { FCDimensionInput } from './FCDimensionInput';
 import { FCCropper } from './FCCropper';
 import { ExportPanel } from '@/shared/components/ExportPanel';
-import type { CategoryType } from '@/shared/components/FileUpload';
 import type { Unit } from './FCDimensionInput';
 
 import { Grid } from '@/core/components/ui/Grid';
 
+// 👇 IMPORT IMAGE CONFIG
+import { IMAGE_CONFIG } from '@/entities/image/services/config';
+
 const TOOL_ID = 'form-crop';
 
 interface FormCropToolProps {
-  category: CategoryType;
+  category: string;
   toolId: string;
 }
 
@@ -48,8 +51,8 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
     setIsLoading(true);
     try {
       await upload(files);
-    } catch (error) {
-      console.error('Upload failed:', error);
+    } catch {
+      // silent
     } finally {
       setIsLoading(false);
     }
@@ -66,8 +69,8 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
     try {
       const file = new File([croppedBlob], name, { type: croppedBlob.type });
       await save([file]);
-    } catch (error) {
-      console.error('Crop save failed:', error);
+    } catch {
+      // silent
     } finally {
       setIsLoading(false);
     }
@@ -165,7 +168,9 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
             <FileUpload
               file={currentFile}
               variant="single"
-              category={category}
+              accept={IMAGE_CONFIG.accept}          // 👈 PASS ACCEPT
+              label={IMAGE_CONFIG.label}            // 👈 PASS LABEL
+              extensions={IMAGE_CONFIG.extensions}  // 👈 PASS EXTENSIONS
               isLoading={isLoading}
               onUpload={handleUpload}
               onRemove={handleRemove}
