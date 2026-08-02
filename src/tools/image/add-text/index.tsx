@@ -1,25 +1,227 @@
+// src/tools/image/add-text/index.tsx
+import React, { useState, useCallback } from 'react';
 import { Tool } from '@/core/registry/toolRegistry';
+import { useFileStore } from '@/core/store/fileStore';
+import { FileUpload } from '@/shared/components/FileUpload';
+import { FileCard } from '@/shared/components/FileCard';
+import { ExportPanel } from '@/shared/components/ExportPanel';
+import { Motion } from '@/core/motion/motion';
+import { Stagger } from '@/core/motion/Stagger';
+import { zoomIn } from '@/core/motion/presets/zoomIn';
+import { Grid } from '@/core/components/ui/Grid';
+import { ATCard } from './ATCard';
+import { IMAGE_CONFIG } from '@/entities/image/services/config';
 
-function AddTextTool() {
+const TOOL_ID = 'add-text';
+
+interface AddTextToolProps {
+  category: string;
+  toolId: string;
+}
+
+function AddTextTool({ category, toolId }: AddTextToolProps) {
+  const { list, upload, save, clear, promote, readFile, remove } = useFileStore();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const originalFiles = list('original');
+  const currentFile = originalFiles.length > 0 ? originalFiles[0] : null;
+
+  const processedFiles = list('process');
+  const latestProcessed = processedFiles.length > 0 ? processedFiles[processedFiles.length - 1] : null;
+
+  const handleUpload = useCallback(
+    async (files: File[]) => {
+      setIsLoading(true);
+      try {
+        await upload(files);
+      } catch {
+        // silent
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [upload]
+  );
+
+  const handleRemove = useCallback(async () => {
+    if (currentFile) {
+      await clear();
+    }
+  }, [currentFile, clear]);
+
+  const handleProcess = useCallback(
+    async (blob: Blob) => {
+      setIsLoading(true);
+      try {
+        const ext = blob.type.split('/')[1] || 'jpg';
+        const resultFile = new File(
+          [blob],
+          `text-added.${ext}`,
+          { type: blob.type }
+        );
+        await save([resultFile]);
+      } catch (error) {
+        alert(`Processing failed: ${error instanceof Error ? error.message : String(error)}`);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [save]
+  );
+
+  const handleAction = useCallback(
+    async (selectedToolId: string, variant: 'single' | 'multiple') => {
+      if (!selectedToolId) {
+        alert('Error: No tool selected.');
+        return;
+      }
+
+      const processedFiles = list('process');
+      if (processedFiles.length === 0) {
+        alert('No processed files to promote');
+        return;
+      }
+
+      const latestName = processedFiles[processedFiles.length - 1]?.name;
+
+      const state = useFileStore.getState();
+      const targetOriginals = state.original.filter(f => f.toolId === selectedToolId);
+
+      if (targetOriginals.length > 0) {
+        const userChoice = window.confirm(
+          `The target tool already has ${targetOriginals.length} file(s).\n\n` +
+          `• Click "OK" → REPLACE (delete old files, use new ones)\n` +
+          `• Click "Cancel" → KEEP (add new files, keep old ones)`
+        );
+
+        if (userChoice) {
+          for (const ref of targetOriginals) {
+            await remove(ref.storageKey);
+          }
+          useFileStore.setState((prevState) => ({
+            original: prevState.original.filter(f => f.toolId !== selectedToolId),
+          }));
+          await syncToDB(
+            useFileStore.getState().original,
+            useFileStore.getState().process
+          );
+        }
+      }
+
+      if (variant === 'single' && latestName) {
+        await promote(latestName, selectedToolId);
+      } else {
+        await promote(undefined, selectedToolId);
+      }
+
+      window.location.href = `/${selectedToolId}`;
+    },
+    [list, promote, remove]
+  );
+
+  const hasFile = !!currentFile;
+  const hasProcessed = !!latestProcessed;
+
+  async function syncToDB(original: any[], process: any[]) {
+    const { saveCatalog } = await import('@/core/services/indexeddb');
+    await saveCatalog({ original, process });
+  }
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-medium text-gray-700 dark:text-gray-300">
-          Add Text to Image
-        </h2>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">
-          Coming soon...
-        </p>
-      </div>
+    <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
+      <Grid minCardWidth={360} gap={16}>
+        <Stagger delay={100}>
+          <Motion
+            preset={zoomIn}
+            as="div"
+            className="col-span-1"
+            delay={0}
+            style={{ opacity: 0, transform: 'scale(0.5)' }}
+          >
+            <FileUpload
+              file={currentFile}
+              variant="single"
+              accept={IMAGE_CONFIG.accept}
+              label={IMAGE_CONFIG.label}
+              extensions={IMAGE_CONFIG.extensions}
+              isLoading={isLoading}
+              onUpload={handleUpload}
+              onRemove={handleRemove}
+              minWidth={360}
+              minHeight={400}
+              padding={0}
+            />
+          </Motion>
+
+          {hasFile && (
+            <Motion
+              preset={zoomIn}
+              as="div"
+              className="col-span-1"
+              delay={100}
+              style={{ opacity: 0, transform: 'scale(0.5)' }}
+            >
+              <ATCard
+                file={currentFile}
+                onProcess={handleProcess}
+                minWidth={360}
+                minHeight={350}
+                padding={0}
+              />
+            </Motion>
+          )}
+
+          {hasProcessed && (
+            <Motion
+              preset={zoomIn}
+              as="div"
+              className="col-span-1"
+              delay={200}
+              style={{ opacity: 0, transform: 'scale(0.5)' }}
+            >
+              <FileCard
+                file={latestProcessed}
+                variant="process"
+                minWidth={360}
+                minHeight={350}
+                padding={0}
+              />
+            </Motion>
+          )}
+
+          {hasProcessed && (
+            <Motion
+              preset={zoomIn}
+              as="div"
+              className="col-span-1"
+              delay={300}
+              style={{ opacity: 0, transform: 'scale(0.5)' }}
+            >
+              <ExportPanel
+                file={latestProcessed}
+                variant="single"
+                initialFileName="text-added"
+                onClear={clear}
+                toolId={toolId}
+                onToolSelect={handleAction}
+                minWidth={360}
+                minHeight={200}
+                padding={0}
+              />
+            </Motion>
+          )}
+        </Stagger>
+      </Grid>
     </div>
   );
 }
 
 const toolDef: Tool = {
   id: 'add-text',
-  name: 'Add Text to Image',
-  description: 'Add text overlays to images',
+  name: 'Add Text',
+  description: 'Add text overlay to your image',
   category: 'image',
+  input: 'single',
   component: AddTextTool,
 };
 
