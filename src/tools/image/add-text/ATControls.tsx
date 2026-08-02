@@ -5,9 +5,11 @@ import {
   FiPlus,
   FiRotateCcw,
 } from 'react-icons/fi';
-import { IconButton } from '@/core/components/ui/IconButton';
-import { Button } from '@/core/components/ui/Button';
 import { Container } from '@/core/components/ui/Container';
+import { Button } from '@/core/components/ui/Button';
+import { IconButton } from '@/core/components/ui/IconButton';
+import { Motion } from '@/core/motion/motion';
+import { inputFieldMotion } from '@/core/motion/compositions/input';
 import type { TextConfig } from './ATLogic';
 
 interface ATControlsProps {
@@ -55,173 +57,172 @@ export const ATControls: React.FC<ATControlsProps> = ({
   isExporting,
 }) => {
   return (
-    <Container className="px-3 py-3">
+    <Container className="px-3 py-3 max-w-full overflow-hidden">
       <div className="space-y-3">
         {/* ─── TEXT INPUT + Style Buttons ────────────────── */}
         <div className="flex items-start gap-2">
-          <textarea
+          <Motion
+            preset={inputFieldMotion}
+            as="textarea"
             value={config.content}
             onChange={(e) => onUpdateText(e.target.value)}
             placeholder="Type your text here..."
             rows={2}
             className="
-              flex-1 px-3 py-2
+              flex-1 min-w-[80px] px-3 py-2
               bg-white dark:bg-gray-800
               border border-gray-200 dark:border-gray-700
               rounded-lg
               text-sm text-gray-900 dark:text-gray-100
               placeholder:text-gray-400 dark:placeholder:text-gray-500
-              focus:outline-none focus:ring-2 focus:ring-blue-500
               resize-none
-              transition-all
               min-h-[48px]
             "
           />
 
-          {/* Style Buttons */}
-          <div className="flex gap-1 pt-1">
-            <button
+          {/* Style Buttons as IconButtons */}
+          <div className="flex gap-1 pt-1 flex-shrink-0">
+            <IconButton
+              variant={config.fontWeight === 'bold' ? 'filled' : 'standard'}
+              size="sm"
               onClick={onToggleBold}
-              className={`
-                px-3 py-1.5 text-sm font-bold rounded-lg transition-all
-                ${config.fontWeight === 'bold'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
-                }
-              `}
+              ariaLabel="Toggle bold"
+              className="px-2 py-1 min-w-[32px]"
             >
-              B
-            </button>
-            <button
+              <span className="font-bold text-sm">B</span>
+            </IconButton>
+            <IconButton
+              variant={config.fontStyle === 'italic' ? 'filled' : 'standard'}
+              size="sm"
               onClick={onToggleItalic}
-              className={`
-                px-3 py-1.5 text-sm font-medium italic rounded-lg transition-all
-                ${config.fontStyle === 'italic'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
-                }
-              `}
+              ariaLabel="Toggle italic"
+              className="px-2 py-1 min-w-[32px]"
             >
-              I
-            </button>
+              <span className="italic text-sm">I</span>
+            </IconButton>
           </div>
         </div>
 
-        {/* ─── ROW 1: Size + Colors ──────────────────────── */}
-        <div className="flex items-center gap-3">
-          {/* Size */}
-          <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+        {/* ─── ROW 1: Size | Color | BG Clear ──────────────── */}
+        {/* 🔥 FIX: Use flex-wrap + shrink items, no scrollbar */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          {/* Size Group */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Size
             </label>
             <IconButton
               onClick={() => onUpdateFontSize(Math.max(8, config.fontSize - 4))}
-              variant="standard"
               size="xs"
+              variant="standard"
               ariaLabel="Decrease size"
             >
-              <FiMinus className="w-3 h-3" />
+              <FiMinus />
             </IconButton>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[32px] text-center">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[28px] text-center">
               {config.fontSize}
             </span>
             <IconButton
               onClick={() => onUpdateFontSize(Math.min(200, config.fontSize + 4))}
-              variant="standard"
               size="xs"
+              variant="standard"
               ariaLabel="Increase size"
             >
-              <FiPlus className="w-3 h-3" />
+              <FiPlus />
             </IconButton>
           </div>
 
-          <div className="w-px h-6 bg-gray-300 dark:bg-gray-600" />
+          {/* Divider */}
+          <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
 
-          {/* Text Color */}
-          <div className="flex items-center gap-1.5">
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          {/* Color Group */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Color
             </label>
             <input
               type="color"
               value={config.color}
               onChange={(e) => onUpdateColor(e.target.value)}
-              className="w-8 h-8 p-0 border-0 rounded-lg cursor-pointer bg-transparent"
+              className="w-6 h-6 p-0 border-0 rounded-lg cursor-pointer bg-transparent flex-shrink-0"
             />
           </div>
 
-          {/* BG Color */}
-          <div className="flex items-center gap-1.5">
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          {/* Divider */}
+          <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
+
+          {/* BG Color + Clear Group */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               BG
             </label>
             <input
               type="color"
               value={config.backgroundColor === 'transparent' ? '#ffffff' : config.backgroundColor}
               onChange={(e) => onUpdateBackgroundColor(e.target.value)}
-              className="w-8 h-8 p-0 border-0 rounded-lg cursor-pointer bg-transparent"
+              className="w-6 h-6 p-0 border-0 rounded-lg cursor-pointer bg-transparent flex-shrink-0"
             />
-            <button
+            <IconButton
+              variant={config.backgroundColor === 'transparent' ? 'standard' : 'filled'}
+              size="sm"
               onClick={() => onUpdateBackgroundColor('transparent')}
-              className={`
-                px-1.5 py-0.5 text-xs font-medium rounded transition-all
-                ${config.backgroundColor === 'transparent'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
-                }
-              `}
+              ariaLabel="Clear background"
+              className="px-1.5 py-0.5 text-xs font-medium rounded whitespace-nowrap"
             >
-              Clear
-            </button>
+              <span>Clear</span>
+            </IconButton>
           </div>
         </div>
 
-        {/* ─── ROW 2: Opacity + Font Family ──────────────── */}
-        <div className="flex items-center gap-3">
-          {/* Opacity */}
-          <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+        {/* ─── ROW 2: Opacity | Font Family ──────────────────── */}
+        {/* 🔥 FIX: Allow font select to shrink */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          {/* Opacity Group */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Opacity
             </label>
             <IconButton
               onClick={() => onUpdateOpacity(Math.max(0, config.opacity - 0.05))}
-              variant="standard"
               size="xs"
+              variant="standard"
               ariaLabel="Decrease opacity"
             >
-              <FiMinus className="w-3 h-3" />
+              <FiMinus />
             </IconButton>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[40px] text-center">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[36px] text-center">
               {Math.round(config.opacity * 100)}%
             </span>
             <IconButton
               onClick={() => onUpdateOpacity(Math.min(1, config.opacity + 0.05))}
-              variant="standard"
               size="xs"
+              variant="standard"
               ariaLabel="Increase opacity"
             >
-              <FiPlus className="w-3 h-3" />
+              <FiPlus />
             </IconButton>
           </div>
 
-          <div className="w-px h-6 bg-gray-300 dark:bg-gray-600" />
+          {/* Divider */}
+          <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
 
-          {/* Font Family */}
-          <div className="flex-1 flex items-center gap-1.5">
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          {/* Font Family Group */}
+          <div className="flex items-center gap-1.5 flex-1 min-w-[100px] max-w-[180px]">
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Font
             </label>
-            <select
+            <Motion
+              preset={inputFieldMotion}
+              as="select"
               value={config.fontFamily}
               onChange={(e) => onUpdateFontFamily(e.target.value)}
               className="
-                flex-1 px-2 py-1.5
+                flex-1 min-w-[60px] px-2 py-1.5
                 bg-white dark:bg-gray-800
                 border border-gray-200 dark:border-gray-700
                 rounded-lg
                 text-sm text-gray-900 dark:text-gray-100
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-                transition-all
+                truncate
               "
             >
               {FONTS.map((font) => (
@@ -229,57 +230,51 @@ export const ATControls: React.FC<ATControlsProps> = ({
                   {font.split(',')[0].trim()}
                 </option>
               ))}
-            </select>
+            </Motion>
           </div>
         </div>
 
-        {/* ─── ROW 3: Position Buttons (Top/Bottom Only) ─── */}
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-gray-500 dark:text-gray-400 min-w-[48px]">
+        {/* ─── ROW 3: Position (Top/Bottom) ───────────────────── */}
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
             Position
           </label>
-          <div className="flex gap-1 flex-1">
+          <div className="flex gap-1 flex-1 min-w-[100px]">
             {['top', 'bottom'].map((pos) => (
-              <button
+              <Button
                 key={pos}
+                variant={config.position === pos ? 'primary' : 'secondary'}
                 onClick={() => onUpdatePosition(pos as 'top' | 'bottom')}
-                className={`
-                  flex-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-all capitalize
-                  ${config.position === pos
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
-                  }
-                `}
+                className="flex-1 px-2 py-1.5 text-xs font-medium rounded-lg capitalize"
               >
                 {pos}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
-        {/* ─── Reset + Apply ────────────────────────────────── */}
-        <div className="flex items-center justify-between pt-1">
+        {/* ─── ROW 4: Reset + Apply ───────────────────────────── */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <div className="flex items-center gap-1">
             <IconButton
               onClick={onReset}
+              disabled={!hasChanges}
               variant="standard"
               size="sm"
               ariaLabel="Reset text settings"
-              disabled={!hasChanges}
-              className={!hasChanges ? 'text-gray-300 cursor-not-allowed' : 'hover:text-red-600'}
             >
-              <FiRotateCcw className="w-4 h-4" />
+              <FiRotateCcw />
             </IconButton>
             <span className="text-xs text-gray-400">Reset</span>
           </div>
 
           <Button
+            variant="primary"
             onClick={onApply}
             disabled={isExporting || !config.content.trim()}
-            variant="primary"
             className="px-6 py-1.5 text-sm"
           >
-            {isExporting ? 'Processing...' : 'Apply Text'}
+            Apply Text
           </Button>
         </div>
       </div>
