@@ -91,7 +91,7 @@ function AddTextTool({ category, toolId }: AddTextToolProps) {
         const userChoice = window.confirm(
           `The target tool already has ${targetOriginals.length} file(s).\n\n` +
           `• Click "OK" → REPLACE (delete old files, use new ones)\n` +
-          `• Click "Cancel" → KEEP (add new files, keep old ones)`
+          `• Click "CANCEL" → Stay in current tool`
         );
 
         if (userChoice) {
@@ -105,6 +105,9 @@ function AddTextTool({ category, toolId }: AddTextToolProps) {
             useFileStore.getState().original,
             useFileStore.getState().process
           );
+        } else {
+          // Cancel: stay in current tool
+          return;
         }
       }
 

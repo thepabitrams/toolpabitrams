@@ -118,7 +118,7 @@ function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
         const userChoice = window.confirm(
           `The target tool already has ${targetOriginals.length} file(s).\n\n` +
           `• Click "OK" → REPLACE (delete old files, use new ones)\n` +
-          `• Click "Cancel" → KEEP (add new files, keep old ones)`
+          `• Click "CANCEL" → Stay in current tool`
         );
 
         if (userChoice) {
@@ -132,6 +132,9 @@ function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
             useFileStore.getState().original,
             useFileStore.getState().process
           );
+        } else {
+          // Cancel: stay in current tool
+          return;
         }
       }
 
@@ -168,9 +171,9 @@ function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
             <FileUpload
               file={currentFile}
               variant="single"
-              accept={IMAGE_CONFIG.accept}          // 👈 PASS ACCEPT
-              label={IMAGE_CONFIG.label}            // 👈 PASS LABEL
-              extensions={IMAGE_CONFIG.extensions}  // 👈 PASS EXTENSIONS
+              accept={IMAGE_CONFIG.accept}
+              label={IMAGE_CONFIG.label}
+              extensions={IMAGE_CONFIG.extensions}
               isLoading={isLoading}
               onUpload={handleUpload}
               onRemove={handleRemove}
