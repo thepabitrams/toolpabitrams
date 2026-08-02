@@ -3,11 +3,8 @@ import { useState, useCallback } from 'react';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
 import { Motion } from '@/core/motion/motion';
-import {
-  dimensionInputMotion,
-  dimensionButtonMotion,
-  dpiInputMotion,
-} from '@/core/motion/compositions/dimensionInput';
+import { inputFieldMotion } from '@/core/motion/compositions/input';
+import { buttonMotion } from '@/core/motion/compositions/button'; // ✅ Correct import
 
 export type Unit = 'px' | 'mm' | 'cm' | 'inch';
 
@@ -30,9 +27,6 @@ interface FCDimensionInputProps {
   padding?: number;
 }
 
-/**
- * Convert raw dimension + unit + DPI to pixels.
- */
 const toPixels = (value: number, fromUnit: Unit, dpi: number): number => {
   switch (fromUnit) {
     case 'px':   return value;
@@ -74,18 +68,28 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
 
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
-    if (!isNaN(val) && val >= 0) {
-      setWidthRaw(val);
-      notify(val, heightRaw, unit, dpi);
+    if (e.target.value === '' || isNaN(val)) return;
+    if (val <= 0) {
+      window.alert('Width cannot be 0 or negative. Setting to 1.');
+      setWidthRaw(1);
+      notify(1, heightRaw, unit, dpi);
+      return;
     }
+    setWidthRaw(val);
+    notify(val, heightRaw, unit, dpi);
   };
 
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
-    if (!isNaN(val) && val >= 0) {
-      setHeightRaw(val);
-      notify(widthRaw, val, unit, dpi);
+    if (e.target.value === '' || isNaN(val)) return;
+    if (val <= 0) {
+      window.alert('Height cannot be 0 or negative. Setting to 1.');
+      setHeightRaw(1);
+      notify(widthRaw, 1, unit, dpi);
+      return;
     }
+    setHeightRaw(val);
+    notify(widthRaw, val, unit, dpi);
   };
 
   const handleDpiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,24 +105,20 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
   return (
     <Container 
       className={`px-0 flex-1 ${className}`}
-      style={{
-        minWidth: `${minWidth}px`,
-        minHeight: `${minHeight}px`,
-        padding: `${padding}px`,
-      }}
+      style={{ minWidth, minHeight, padding }}
     >
       <Card className="p-4 flex flex-col h-full w-full">
         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
           Dimension Input
         </h3>
 
-        {/* DPI Input */}
+        {/* ─── DPI Input ───────────────────────────── */}
         <div className="flex items-center gap-3 mb-3">
           <label className="text-xs font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">
             DPI
           </label>
           <Motion
-            preset={dpiInputMotion}
+            preset={inputFieldMotion}
             as="input"
             type="number"
             value={dpi}
@@ -126,16 +126,11 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
             onFocus={handleFocus}
             min="1"
             max="1200"
-            className="
-              flex-1 px-3 py-1.5 text-sm
-              bg-gray-50 dark:bg-gray-700/50
-              border border-gray-200 dark:border-gray-600
-              rounded-lg outline-none
-            "
+            className="flex-1"
           />
         </div>
 
-        {/* Unit Buttons */}
+        {/* ─── Unit Buttons ───────────────────────────── */}
         <div className="mb-3">
           <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
             Unit
@@ -144,7 +139,7 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
             {UNITS.map((u) => (
               <Motion
                 key={u}
-                preset={dimensionButtonMotion}
+                preset={buttonMotion}          // ✅ Using buttonMotion from button.ts
                 as="button"
                 onClick={() => handleUnitChange(u)}
                 className={`
@@ -162,27 +157,22 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
           </div>
         </div>
 
-        {/* Width & Height Inputs */}
+        {/* ─── Width & Height Inputs ──────────────────── */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Width ({unit})
             </label>
             <Motion
-              preset={dimensionInputMotion}
+              preset={inputFieldMotion}
               as="input"
               type="number"
               value={widthRaw}
               onChange={handleWidthChange}
               onFocus={handleFocus}
-              min="0"
+              min="1"
               step="any"
-              className="
-                w-full px-3 py-1.5 text-sm
-                bg-gray-50 dark:bg-gray-700/50
-                border border-gray-200 dark:border-gray-600
-                rounded-lg outline-none
-              "
+              className="w-full"
             />
           </div>
           <div>
@@ -190,20 +180,15 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
               Height ({unit})
             </label>
             <Motion
-              preset={dimensionInputMotion}
+              preset={inputFieldMotion}
               as="input"
               type="number"
               value={heightRaw}
               onChange={handleHeightChange}
               onFocus={handleFocus}
-              min="0"
+              min="1"
               step="any"
-              className="
-                w-full px-3 py-1.5 text-sm
-                bg-gray-50 dark:bg-gray-700/50
-                border border-gray-200 dark:border-gray-600
-                rounded-lg outline-none
-              "
+              className="w-full"
             />
           </div>
         </div>

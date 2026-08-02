@@ -8,8 +8,6 @@ import { useFileStore } from '@/core/store/fileStore';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
 import type { FileRef } from '@/core/store/fileStore';
-
-// 👇 PURE SERVICES
 import { cropImage } from '@/entities/image/services/canvas';
 import { resizeImage } from '@/entities/image/services/resize';
 import { injectImageMetadata } from '@/entities/image/services/writeMetadata';
@@ -39,27 +37,25 @@ export const FCCropper: React.FC<FCCropperProps> = ({
   minHeight = 200,
   padding = 0,
 }) => {
-  const [isProcessing, setIsProcessing] = useState(false);
+  // 🗑️ REMOVED: const [isProcessing, setIsProcessing] = useState(false);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const { read, readFile } = useFileStore();
+  const { readFile } = useFileStore();
 
+  // 🚫 rotation is completely removed from the hook
   const {
     crop,
     zoom,
-    rotation,
     setCrop,
     setZoom,
-    setRotation,
     zoomIn,
     zoomOut,
-    rotateLeft,
-    rotateRight,
     reset,
     isZoomMin,
     isZoomMax,
   } = useFCCrop();
 
+  // ─── Load image from OPFS using storageKey ──────────────────
   useEffect(() => {
     let isMounted = true;
     let objectUrl: string | null = null;
@@ -71,13 +67,13 @@ export const FCCropper: React.FC<FCCropperProps> = ({
       }
 
       try {
-        const blob = await read(file.name);
-        if (blob && isMounted) {
-          objectUrl = URL.createObjectURL(blob);
+        const fileObj = await readFile(file.storageKey);
+        if (fileObj && isMounted) {
+          objectUrl = URL.createObjectURL(fileObj);
           setImageUrl(objectUrl);
         }
       } catch {
-        // Silent fail
+        // silent fail – caller handles errors
       }
     };
 
@@ -89,38 +85,32 @@ export const FCCropper: React.FC<FCCropperProps> = ({
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [file, read]);
+  }, [file, readFile]);
 
   const onCropAreaComplete = useCallback((_: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
   const handleCrop = useCallback(async () => {
-    if (!file || !croppedAreaPixels || !imageUrl) {
-      return;
-    }
-
-    setIsProcessing(true);
-
+    if (!file || !croppedAreaPixels || !imageUrl) return;
+    // 🗑️ REMOVED: setIsProcessing(true);
     try {
       const originalFile = await readFile(file.storageKey);
       if (!originalFile) throw new Error("Failed to read file");
-
-      const croppedBlob = await cropImage(originalFile, croppedAreaPixels, rotation);
+      // ✅ rotation always 0
+      const croppedBlob = await cropImage(originalFile, croppedAreaPixels, 0);
       const resizedBlob = await resizeImage(croppedBlob, targetWidthPx, targetHeightPx);
       const resizedFile = new File([resizedBlob], file.name, { type: resizedBlob.type });
       const finalBlob = await injectImageMetadata(resizedFile, inputDpi);
-
       const extension = finalBlob.type.split('/')[1] || 'jpg';
       const newName = file.name.replace(/\.[^.]+$/, '') + `_cropped_${targetWidthPx}x${targetHeightPx}.${extension}`;
-
       await onCrop(finalBlob, newName);
     } catch {
-      // Silent fail - error will be handled by caller
+      // silent
     } finally {
-      setIsProcessing(false);
+      // 🗑️ REMOVED: setIsProcessing(false);
     }
-  }, [file, croppedAreaPixels, rotation, targetWidthPx, targetHeightPx, inputDpi, onCrop, imageUrl, readFile]);
+  }, [file, croppedAreaPixels, targetWidthPx, targetHeightPx, inputDpi, onCrop, imageUrl, readFile]);
 
   if (!file || !imageUrl) {
     return (
@@ -135,20 +125,23 @@ export const FCCropper: React.FC<FCCropperProps> = ({
   return (
     <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>
       <Card className="overflow-hidden p-0">
-        <div className="relative w-full aspect-square min-h-[300px] sm:min-h-[400px] bg-gray-100 dark:bg-gray-700">
+        {/* 🖐️ touch-action: none prevents browser pinch-zoom from interfering */}
+        <div
+          className="relative w-full aspect-square min-h-[300px] sm:min-h-[400px] bg-gray-100 dark:bg-gray-700"
+          style={{ touchAction: 'none' }}
+        >
           <Cropper
             image={imageUrl}
             crop={crop}
             zoom={zoom}
-            rotation={rotation}
+            rotation={0}                         // 🚫 forced 0
             aspect={aspectRatio}
             minZoom={1}
-            maxZoom={3}
+            maxZoom={5}                          // ✅ 500% zoom
             restrictPosition={true}
             zoomWithScroll={true}
             onCropChange={setCrop}
             onZoomChange={setZoom}
-            onRotationChange={setRotation}
             onCropComplete={onCropAreaComplete}
             style={{
               containerStyle: { width: "100%", height: "100%", position: "relative" },
@@ -167,16 +160,13 @@ export const FCCropper: React.FC<FCCropperProps> = ({
 
         <FCCropControls
           zoom={zoom}
-          rotation={rotation}
           isZoomMin={isZoomMin}
           isZoomMax={isZoomMax}
           onZoomIn={zoomIn}
           onZoomOut={zoomOut}
-          onRotateLeft={rotateLeft}
-          onRotateRight={rotateRight}
           onReset={reset}
           onCrop={handleCrop}
-          isProcessing={isProcessing}
+          // 🗑️ REMOVED: isProcessing={isProcessing}
         />
       </Card>
     </Container>

@@ -3,6 +3,8 @@ import React, { useRef } from 'react';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
 import { Button } from '@/core/components/ui/Button';
+import { Motion } from '@/core/motion/motion';
+import { inputFieldMotion } from '@/core/motion/compositions/input'; // 👈 new import
 
 interface ASCardProps {
   minKB: number;
@@ -34,7 +36,6 @@ export const ASCard: React.FC<ASCardProps> = ({
   const minInputRef = useRef<HTMLInputElement>(null);
   const maxInputRef = useRef<HTMLInputElement>(null);
 
-  // ─── Auto-select on focus ──────────────────────────────────
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.select();
   };
@@ -53,28 +54,17 @@ export const ASCard: React.FC<ASCardProps> = ({
               Min Size
             </label>
             <div className="relative">
-              <input
-                ref={minInputRef}
+              <Motion
+                preset={inputFieldMotion}
+                as="input"
                 type="number"
                 min={1}
                 value={minKB}
                 onChange={(e) => onMinChange(Number(e.target.value))}
                 onFocus={handleFocus}
-                className="
-                  w-full 
-                  px-3 py-2.5 
-                  text-gray-900 dark:text-white 
-                  bg-white dark:bg-gray-800 
-                  border border-gray-300 dark:border-gray-600 
-                  rounded-lg 
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                  transition-shadow duration-200
-                  text-sm
-                  [appearance:textfield]
-                  [&::-webkit-outer-spin-button]:appearance-none
-                  [&::-webkit-inner-spin-button]:appearance-none
-                "
+                ref={minInputRef}
                 placeholder="Min KB"
+                className="w-full" // base styles come from the motion, we can keep this for overrides
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500 pointer-events-none">
                 KB
@@ -88,28 +78,17 @@ export const ASCard: React.FC<ASCardProps> = ({
               Max Size
             </label>
             <div className="relative">
-              <input
-                ref={maxInputRef}
+              <Motion
+                preset={inputFieldMotion}
+                as="input"
                 type="number"
                 min={1}
                 value={maxKB}
                 onChange={(e) => onMaxChange(Number(e.target.value))}
                 onFocus={handleFocus}
-                className="
-                  w-full 
-                  px-3 py-2.5 
-                  text-gray-900 dark:text-white 
-                  bg-white dark:bg-gray-800 
-                  border border-gray-300 dark:border-gray-600 
-                  rounded-lg 
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                  transition-shadow duration-200
-                  text-sm
-                  [appearance:textfield]
-                  [&::-webkit-outer-spin-button]:appearance-none
-                  [&::-webkit-inner-spin-button]:appearance-none
-                "
+                ref={maxInputRef}
                 placeholder="Max KB"
+                className="w-full"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500 pointer-events-none">
                 KB
@@ -125,28 +104,16 @@ export const ASCard: React.FC<ASCardProps> = ({
           </p>
         )}
 
-        {/* Process Button - Google Blue */}
+        {/* Process Button */}
         <Button
           onClick={onProcess}
           disabled={!hasFile || isProcessing || minKB >= maxKB}
           variant="primary"
-          className="
-            w-full 
-            py-2.5 
-            text-sm 
-            font-medium 
-            text-white 
-            bg-blue-600 hover:bg-blue-700 
-            disabled:bg-blue-300 dark:disabled:bg-blue-800 
-            disabled:cursor-not-allowed
-            rounded-lg 
-            transition-colors duration-200
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-          "
+          className="w-full py-2.5 text-sm font-medium rounded-lg transition-colors duration-200"
         >
           {isProcessing ? (
             <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>

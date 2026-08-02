@@ -1,3 +1,4 @@
+// src/shared/components/ExportPanel.tsx
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/core/components/ui/Button';
 import { ActionButton } from '@/shared/components/ActionButton';
@@ -5,7 +6,7 @@ import { useFileStore } from '@/core/store/fileStore';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
 import { Motion } from '@/core/motion/motion';
-import { exportInputMotion } from '@/core/motion/compositions/exportInput';
+import { inputFieldMotion } from '@/core/motion/compositions/input'; // 👈 new unified composition
 import type { FileRef } from '@/core/store/fileStore';
 
 interface ExportPanelProps {
@@ -113,7 +114,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         <div className="mb-3">
           <div className="relative">
             <Motion
-              preset={exportInputMotion}
+              preset={inputFieldMotion}       // 👈 now using the unified composition
               as="input"
               type="text"
               value={fileName}

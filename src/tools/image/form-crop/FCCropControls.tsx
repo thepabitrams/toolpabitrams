@@ -1,35 +1,30 @@
-// tools/image/form-crop/FCCropControls.tsx
-
+// src/tools/image/form-crop/FCCropControls.tsx
 import React from "react";
-import { FiZoomIn, FiZoomOut, FiRotateCw, FiRotateCcw, FiRefreshCw } from "react-icons/fi";
+import { FiZoomIn, FiZoomOut, FiRefreshCw } from "react-icons/fi";
 import { Button } from "@/core/components/ui/Button";
 import { IconButton } from "@/core/components/ui/IconButton";
 import { Container } from "@/core/components/ui/Container";
 
 interface FCCropControlsProps {
   zoom: number;
-  rotation: number;
   isZoomMin: boolean;
   isZoomMax: boolean;
   onZoomIn: () => void;
   onZoomOut: () => void;
-  onRotateLeft: () => void;
-  onRotateRight: () => void;
   onReset: () => void;
   onCrop: () => void;
+  // 🚫 isProcessing REMOVED – no more disabling
 }
 
 export const FCCropControls: React.FC<FCCropControlsProps> = ({
   zoom,
-  rotation,
   isZoomMin,
   isZoomMax,
   onZoomIn,
   onZoomOut,
-  onRotateLeft,
-  onRotateRight,
   onReset,
   onCrop,
+  // 🚫 isProcessing removed from destructuring
 }) => {
   return (
     <Container className="px-4 py-4">
@@ -62,30 +57,6 @@ export const FCCropControls: React.FC<FCCropControlsProps> = ({
           <span className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
 
           <IconButton
-            onClick={onRotateLeft}
-            disabled={true}
-            variant="standard"
-            size="sm"
-            ariaLabel="Rotate left"
-            className="text-gray-300 dark:text-gray-600 cursor-not-allowed"
-          >
-            <FiRotateCcw className="w-5 h-5" />
-          </IconButton>
-
-          <IconButton
-            onClick={onRotateRight}
-            disabled={true}
-            variant="standard"
-            size="sm"
-            ariaLabel="Rotate right"
-            className="text-gray-300 dark:text-gray-600 cursor-not-allowed"
-          >
-            <FiRotateCw className="w-5 h-5" />
-          </IconButton>
-
-          <span className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
-
-          <IconButton
             onClick={onReset}
             variant="standard"
             size="sm"
@@ -103,13 +74,14 @@ export const FCCropControls: React.FC<FCCropControlsProps> = ({
           </span>
         </div>
 
-        {/* ─── Apply Crop Button ────────────────────────────────── */}
+        {/* ─── Apply Crop Button (Always enabled, no processing text) ─── */}
         <Button
           onClick={onCrop}
           variant="primary"
           className="w-full"
+          // 🚫 disabled prop REMOVED
         >
-          Apply Crop
+          Apply Crop  {/* Always "Apply Crop" – no conditional text */}
         </Button>
       </div>
     </Container>
