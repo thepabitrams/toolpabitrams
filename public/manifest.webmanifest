@@ -1,0 +1,20 @@
+{
+  "name": "ToolPabitraMS",
+  "short_name": "ToolPabitraMS",
+  "description": "Your Privacy-First Utility Toolkit",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "any",
+  "categories": ["productivity", "utilities"],
+  "screenshots": []
+}

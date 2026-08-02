@@ -1,13 +1,113 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- ========================================== -->
+    <!--  1. BASIC META TAGS                        -->
+    <!-- ========================================== -->
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ToolPabitraMS</title>
+
+    <!-- ========================================== -->
+    <!--  2. GOOGLE ADSENSE VERIFICATION            -->
+    <!-- ========================================== -->
+    <meta name="google-adsense-account" content="ca-pub-9469903624940946">
+
+    <!-- ========================================== -->
+    <!--  3. GOOGLE ADSENSE SCRIPT (2026 Official)  -->
+    <!-- ========================================== -->
+    <!-- ⚠️ REMOVE data-adbreak-test="on" before production -->
+    <script 
+      async
+      data-adbreak-test="on"
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9469903624940946"
+      crossorigin="anonymous">
+    </script>
+
+    <!-- ========================================== -->
+    <!--  4. PWA / APP MANIFEST                     -->
+    <!-- ========================================== -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- ========================================== -->
+    <!--  5. THEME COLOR (for mobile browsers)      -->
+    <!-- ========================================== -->
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- ========================================== -->
+    <!--  6. FAVICON                               -->
+    <!-- ========================================== -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- ========================================== -->
+    <!--  7. PAGE TITLE                            -->
+    <!-- ========================================== -->
+    <title>ToolPabitraMS — Your Privacy-First Toolkit</title>
+
+    <!-- ========================================== -->
+    <!--  8. SEO / OPEN GRAPH (Optional)           -->
+    <!-- ========================================== -->
+    <meta name="description" content="A personal, client-side utility toolkit built with React, TypeScript, and Vite. All processing happens locally in your browser." />
+    <meta property="og:title" content="ToolPabitraMS" />
+    <meta property="og:description" content="Privacy-first browser tools. No data ever leaves your device." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- ========================================== -->
+    <!--  9. PRELOAD / PRE-CONNECT (Performance)    -->
+    <!-- ========================================== -->
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+    <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
   </head>
   <body>
+    <!-- ========================================== -->
+    <!--  10. REACT ROOT                            -->
+    <!-- ========================================== -->
     <div id="root"></div>
+
+    <!-- ========================================== -->
+    <!--  11. AD LOADER SCRIPT (Failsafe)          -->
+    <!-- ========================================== -->
+    <script>
+      // This ensures ads load reliably
+      window.addEventListener('load', function() {
+        try {
+          if (typeof window.adsbygoogle !== 'undefined') {
+            requestAnimationFrame(() => {
+              try {
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+              } catch (e) {
+                // Silent fail
+              }
+            });
+          }
+        } catch (e) {
+          // Silent fail
+        }
+      });
+    </script>
+
+    <!-- ========================================== -->
+    <!--  12. MAIN APP BUNDLE (Vite Entry)          -->
+    <!-- ========================================== -->
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- ========================================== -->
+    <!--  13. REGISTER SERVICE WORKER (PWA)         -->
+    <!-- ========================================== -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('✅ Service Worker registered:', registration);
+            })
+            .catch(error => {
+              console.log('⚠️ Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
