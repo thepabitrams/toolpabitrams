@@ -13,7 +13,7 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'ToolPabitraMS',
-        short_name: 'ToolPabitra',
+        short_name: 'ToolPabitraMS',
         description: 'Privacy-first image processing toolkit',
         theme_color: '#0f172a',
         background_color: '#ffffff',
