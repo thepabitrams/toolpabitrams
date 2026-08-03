@@ -113,6 +113,74 @@ This project uses the following open source software components.
 
 ---
 
+## @huggingface/transformers (Apache-2.0)
+
+- Version: 4.2.0
+- Copyright: Hugging Face Inc.
+- License: Apache-2.0
+- Source: https://github.com/huggingface/transformers
+- Note: This library provides the inference engine for all AI models in this project.
+
+---
+
+## AI Model Attributions
+
+The following AI models are loaded dynamically at runtime in the browser.
+
+### BiRefNet-lite-512 (MIT)
+
+- Model ID: `studioludens/birefnet-lite-512`
+- Based on: BiRefNet research (CAAI AIR 2024)
+- Copyright: ZhengPeng7 (BiRefNet authors)
+- License: MIT
+- Source: https://github.com/ZhengPeng7/BiRefNet
+- Hugging Face: https://huggingface.co/studioludens/birefnet-lite-512
+
+---
+
+### ISNet-ONNX (Apache-2.0)
+
+- Model ID: `onnx-community/ISNet-ONNX`
+- Based on: "Highly Accurate Dichotomous Image Segmentation" (ECCV 2022)
+- Copyright: Xuebin Qin (DIS project)
+- License: Apache-2.0
+- Source: https://github.com/xuebinqin/DIS
+- Hugging Face: https://huggingface.co/onnx-community/ISNet-ONNX
+
+---
+
+### MVANet-ONNX (MIT)
+
+- Model ID: `onnx-community/MVANet-ONNX`
+- Base: finegrain/finegrain-box-segmenter
+- Copyright: finegrain / onnx-community
+- License: MIT
+- Hugging Face: https://huggingface.co/onnx-community/MVANet-ONNX
+
+---
+
+### MODNet (Apache-2.0)
+
+- Model ID: `Xenova/modnet`
+- Based on: "MODNet: Real-Time Trimap-Free Portrait Matting" (AAAI 2022)
+- Copyright: Xenova (Hugging Face conversion)
+- License: Apache-2.0
+- Hugging Face: https://huggingface.co/Xenova/modnet
+
+---
+
+### ormbg (Apache-2.0)
+
+- Model ID: `onnx-community/ormbg-ONNX`
+- Base Model: `schirrmacher/ormbg`
+- Copyright: schirrmacher (Hugging Face community)
+- License: Apache-2.0
+- Note: This model is based on IS-Net (DIS) research and trained on open datasets. It is **commercially free to use**.
+- Source: https://huggingface.co/schirrmacher/ormbg
+- Hugging Face: https://huggingface.co/onnx-community/ormbg-ONNX
+
+---
+
 ## All Other Dependencies
 
 All other dependencies used in this project are licensed under MIT, Apache-2.0, ISC, or other permissive open-source licenses. Full license texts are available in the `/THIRD-PARTY` folder or in each package's `node_modules` directory.
@@ -127,8 +195,4 @@ All other dependencies used in this project are licensed under MIT, Apache-2.0, 
 
 ---
 
-## Generated on
-
-July 29, 2026
-
-**Last Updated:** July 2026
+**Last Updated:** August 2026

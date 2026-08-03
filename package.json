@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
     "@uswriting/exiftool": "^1.0.9",
     "idb": "^8.0.3",
     "react": "^19.2.7",
