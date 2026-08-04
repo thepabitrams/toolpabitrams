@@ -6,8 +6,8 @@ import { Container } from '@/core/components/ui/Container';
 import { Button } from '@/core/components/ui/Button';
 import { Select } from '@/core/components/ui/Select';
 import { IconButton } from '@/core/components/ui/IconButton';
-import { ColorPicker } from '@/core/components/ui/ColorPicker'; // ✅ NEW
-import { FiDownload, FiLoader } from 'react-icons/fi';
+import { ColorPicker } from '@/core/components/ui/ColorPicker';
+import { FiLoader } from 'react-icons/fi';
 import { MdDelete } from 'react-icons/md';
 import { useFileStore } from '@/core/store/fileStore';
 import { useBRAdd } from '../hooks/useBRAdd';
@@ -18,8 +18,7 @@ interface BRAddProps {
   metadata: { width?: number; height?: number; dpi?: number; unit?: string } | null;
   isProcessing: boolean;
   progress: number;
-  onComplete: (blob: Blob) => void;
-  onRegenerate: () => void;
+  // ✅ REMOVED: onComplete (dead code - not passed from parent)
   className?: string;
   minWidth?: number;
   minHeight?: number;
@@ -31,8 +30,7 @@ const BRAdd: React.FC<BRAddProps> = ({
   metadata,
   isProcessing,
   progress,
-  onComplete,
-  onRegenerate,
+  // ✅ REMOVED: onComplete
   className = '',
   minWidth = 360,
   minHeight = 350,
@@ -127,7 +125,7 @@ const BRAdd: React.FC<BRAddProps> = ({
         type: finalBlob.type,
       });
       await save([resultFile]);
-      onComplete(finalBlob);
+      // ✅ REMOVED: onComplete(finalBlob) - dead code
     } catch (error) {
       console.error('[BRAdd] Error:', error);
       alert(`Export failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -198,7 +196,7 @@ const BRAdd: React.FC<BRAddProps> = ({
             {/* Fixed container - No alignment changes */}
             <div className="flex items-center justify-center gap-2 flex-wrap min-h-[36px]">
               
-              {/* ✅ BG Color Picker - Using reusable ColorPicker */}
+              {/* BG Color Picker - Using reusable ColorPicker */}
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400">BG</label>
                 <ColorPicker
@@ -261,9 +259,7 @@ const BRAdd: React.FC<BRAddProps> = ({
                 Processing...
               </>
             ) : (
-              <>
-                Apply Background
-              </>
+              <>Apply Background</>
             )}
           </Button>
         </div>

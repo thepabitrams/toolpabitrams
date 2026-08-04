@@ -11,7 +11,7 @@ export const isnetStrategy: ModelStrategy = {
   description: 'Best "just works" default',
 
   run: async (file: File, onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void): Promise<Blob> => {
-    console.log('[ISNet] Loading model...');
+   
     onProgress(10, 0, 0, 0);
 
     const pipe = await pipeline('background-removal', 'onnx-community/ISNet-ONNX', {
@@ -46,7 +46,7 @@ export const isnetStrategy: ModelStrategy = {
     const blob = await output[0].toBlob();
     onProgress(100, 0, 0, 0);
 
-    console.log('[ISNet] Complete ✅');
+  
     return blob;
   },
 };

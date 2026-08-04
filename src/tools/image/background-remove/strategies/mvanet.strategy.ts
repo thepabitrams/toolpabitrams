@@ -11,7 +11,7 @@ export const mvanetStrategy: ModelStrategy = {
   description: 'Lightweight, MIT licensed',
 
   run: async (file: File, onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void): Promise<Blob> => {
-    console.log('[MVANet] Loading model...');
+   
     onProgress(10, 0, 0, 0);
 
     const segmenter = await pipeline('background-removal', 'onnx-community/MVANet-ONNX', {
@@ -42,7 +42,7 @@ export const mvanetStrategy: ModelStrategy = {
     const blob = await output[0].toBlob();
     onProgress(100, 0, 0, 0);
 
-    console.log('[MVANet] Complete ✅');
+   
     return blob;
   },
 };

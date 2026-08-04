@@ -9,7 +9,6 @@ import { useBRRemove } from '../hooks/useBRRemove';
 import type { FileRef } from '@/core/store/fileRef';
 import { FiLoader, FiRefreshCw } from 'react-icons/fi';
 import { Select } from '@/core/components/ui/Select';
-import { BRProgressStats } from './BRProgressStats';
 import { BRStatusBadge } from './BRStatusBadge';
 import { BRStatusMessage } from './BRStatusMessage';
 import { extractImageMetadata } from '@/entities/image/services/readMetadata';
@@ -37,10 +36,6 @@ const BRRemove: React.FC<BRRemoveProps> = ({
   const {
     status,
     progress,
-    downloadSpeed,
-    loadedMB,
-    totalMB,
-    isDownloading,
     errorMessage,
     selectedModelId,
     setSelectedModel,
@@ -114,7 +109,6 @@ const BRRemove: React.FC<BRRemoveProps> = ({
   const isError = status === 'error';
   const isBusy = isLoading || isProcessing;
 
-  // Map status to badge status
   const getBadgeStatus = () => {
     if (isLoading || isProcessing) return isLoading ? 'loading' : 'processing';
     if (isError) return 'error';
@@ -145,7 +139,6 @@ const BRRemove: React.FC<BRRemoveProps> = ({
             style={{ opacity: isBusy ? 0.5 : 1 }}
           />
 
-          {/* ✅ Reusable Status Badge */}
           {getBadgeStatus() && (
             <BRStatusBadge
               status={getBadgeStatus()}
@@ -157,7 +150,6 @@ const BRRemove: React.FC<BRRemoveProps> = ({
         {/* ─── Model Selection & Status ──────────────────── */}
         <div className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
           
-          {/* Model Select - Reusable */}
           <div className="px-4 py-3">
             <Select
               value={selectedModelId}
@@ -168,28 +160,13 @@ const BRRemove: React.FC<BRRemoveProps> = ({
             />
           </div>
 
-          {/* ─── Status Area ──────────────────── */}
+          {/* ─── Status Area (Simplified) ──────────────────── */}
           <div className="min-h-[60px] border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2.5 flex items-center">
-            
-            {/* Download Progress - Google Chrome style */}
-            {isDownloading && (
-              <BRProgressStats
-                progress={progress}
-                speed={downloadSpeed}
-                loaded={loadedMB}
-                total={totalMB}
-              />
-            )}
-
-            {/* Reusable Status Message */}
-            {!isDownloading && (
-              <BRStatusMessage
-                status={status}
-                progress={progress}
-                isDownloading={isDownloading}
-                errorMessage={errorMessage}
-              />
-            )}
+            <BRStatusMessage
+              status={status}
+              progress={progress}
+              errorMessage={errorMessage}
+            />
           </div>
         </div>
 

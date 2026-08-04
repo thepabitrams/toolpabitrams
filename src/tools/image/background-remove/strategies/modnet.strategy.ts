@@ -11,7 +11,7 @@ export const modnetStrategy: ModelStrategy = {
   description: 'Fastest, smallest, portraits',
 
   run: async (file: File, onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void): Promise<Blob> => {
-    console.log('[MODNet] Loading model with AutoModel...');
+  
     onProgress(10, 0, 0, 0);
 
     const model = await AutoModel.from_pretrained('Xenova/modnet', {
@@ -74,7 +74,7 @@ export const modnetStrategy: ModelStrategy = {
 
     onProgress(100, 0, 0, 0);
 
-    console.log('[MODNet] Complete ✅');
+  
     return transparentBlob;
   },
 };

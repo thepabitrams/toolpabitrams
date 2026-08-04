@@ -11,7 +11,7 @@ export const ormbgStrategy: ModelStrategy = {
   description: 'Photorealistic cut-out, Apache-2.0',
 
   run: async (file: File, onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void): Promise<Blob> => {
-    console.log('[ormbg] Loading model...');
+    
     onProgress(10, 0, 0, 0);
 
     const segmenter = await pipeline('background-removal', 'onnx-community/ormbg-ONNX', {
@@ -42,7 +42,7 @@ export const ormbgStrategy: ModelStrategy = {
     const blob = await output[0].toBlob();
     onProgress(100, 0, 0, 0);
 
-    console.log('[ormbg] Complete ✅');
+   
     return blob;
   },
 };

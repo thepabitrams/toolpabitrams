@@ -11,7 +11,7 @@ export const birefnetStrategy: ModelStrategy = {
   description: 'Highest quality, MIT licensed',
 
     run: async (file: File, onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void): Promise<Blob> => {
-    console.log('[BiRefNet] Loading model...');
+    
     onProgress(10, 0, 0, 0);
 
     try {
@@ -50,7 +50,7 @@ export const birefnetStrategy: ModelStrategy = {
       const blob = await applyMaskToImage(file, maskImageData);
       onProgress(100, 0, 0, 0);
 
-      console.log('[BiRefNet] Complete ✅');
+      
       return blob;
 
     } catch (error) {

@@ -14,13 +14,13 @@ import BRRemove from './components/BRRemove';
 import BRAdd from './components/BRAdd';
 import { useBRRemove } from './hooks/useBRRemove';
 import { IMAGE_CONFIG } from '@/entities/image/services/config';
-import type { FileRef } from '@/core/store/fileRef';
 
 const TOOL_ID = 'background-remove';
 const METADATA_STORAGE_KEY = 'br_metadata';
 
 function BackgroundRemoveTool() {
-  const { list, upload, save, clear, promote, remove, readFile } = useFileStore();
+  // ✅ REMOVED: save (unused)
+  const { list, upload, clear, promote, remove, readFile } = useFileStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const originalFiles = list('original');
@@ -28,7 +28,8 @@ function BackgroundRemoveTool() {
   const processedFiles = list('process');
   const latestProcessed = processedFiles.length > 0 ? processedFiles[processedFiles.length - 1] : null;
 
-  const { status, progress, generateCutout } = useBRRemove();
+  // ✅ REMOVED: generateCutout (unused)
+  const { status, progress } = useBRRemove();
 
   const [metadataForCutout, setMetadataForCutout] = useState<{
     width?: number;
@@ -71,18 +72,7 @@ function BackgroundRemoveTool() {
     []
   );
 
-  const handleRegenerate = useCallback(() => {
-    setMetadataForCutout(null);
-    localStorage.removeItem(METADATA_STORAGE_KEY);
-  }, []);
-
-  const handleComplete = useCallback(
-    async (blob: Blob) => {
-      // BRAdd already saves to 'process' – no extra save
-      setIsLoading(false);
-    },
-    []
-  );
+  // ✅ REMOVED: handleComplete (redundant)
 
   const handleUpload = useCallback(
     async (files: File[]) => {
@@ -195,16 +185,14 @@ function BackgroundRemoveTool() {
             </Motion>
           )}
 
-          {/* ✅ BRAdd gets the latest cutout file ref – just like FileCard */}
           {hasCutoutFile && (
             <Motion preset={zoomIn} as="div" className="col-span-1" delay={200}>
               <BRAdd
-                cutoutFileRef={latestCutoutRef} // ✅ passed as prop
+                cutoutFileRef={latestCutoutRef}
                 metadata={metadataForCutout}
                 isProcessing={isProcessing}
                 progress={progress}
-                onComplete={handleComplete}
-                onRegenerate={handleRegenerate}
+                // ✅ REMOVED: onComplete={handleComplete}
                 minWidth={360}
                 minHeight={350}
                 padding={0}
