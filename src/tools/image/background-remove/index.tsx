@@ -14,8 +14,10 @@ import BRRemove from './components/BRRemove';
 import BRAdd from './components/BRAdd';
 import { useBRRemove } from './hooks/useBRRemove';
 import { IMAGE_CONFIG } from '@/entities/image/services/config';
+import type { FileRef } from '@/core/store/fileRef';
 
 const TOOL_ID = 'background-remove';
+const METADATA_STORAGE_KEY = 'br_metadata';
 
 function BackgroundRemoveTool() {
   const { list, upload, save, clear, promote, remove, readFile } = useFileStore();
@@ -26,84 +28,69 @@ function BackgroundRemoveTool() {
   const processedFiles = list('process');
   const latestProcessed = processedFiles.length > 0 ? processedFiles[processedFiles.length - 1] : null;
 
-  // ─── AI State ──────────────────────────────────────────────────
-  const {
-    status,
-    progress,
-    generateCutout,
-  } = useBRRemove();
+  const { status, progress, generateCutout } = useBRRemove();
 
-  const [cutoutBlob, setCutoutBlob] = useState<Blob | null>(null);
-  const [originalFileForCutout, setOriginalFileForCutout] = useState<File | null>(null);
+  const [metadataForCutout, setMetadataForCutout] = useState<{
+    width?: number;
+    height?: number;
+    dpi?: number;
+    unit?: string;
+  } | null>(null);
+
+  // ─── Restore metadata from localStorage on mount ──────────────
+  useEffect(() => {
+    const saved = localStorage.getItem(METADATA_STORAGE_KEY);
+    if (saved) {
+      try {
+        setMetadataForCutout(JSON.parse(saved));
+      } catch {}
+    }
+  }, []);
 
   const isProcessing = status === 'loading' || status === 'processing';
 
+  // ✅ Compute the latest cutout file (EXCLUDING original1)
+  const cutoutCandidates = originalFiles.filter(f => f.name !== 'original1');
+  const latestCutoutRef = cutoutCandidates.length > 0 ? cutoutCandidates[cutoutCandidates.length - 1] : null;
+  const hasCutoutFile = !!latestCutoutRef;
+
   // ─── Handlers ──────────────────────────────────────────────────
 
-  // When BRRemove generates the cutout
   const handleCutoutGenerated = useCallback(
-    async (blob: Blob) => {
+    async (blob: Blob, metadata: { width?: number; height?: number; dpi?: number; unit?: string }) => {
       setIsLoading(true);
       try {
-        // 1. Save to process (for FileCard preview)
-        const ext = blob.type.split('/')[1] || 'png';
-        const resultFile = new File([blob], `cutout.${ext}`, { type: blob.type });
-        await save([resultFile]);
-
-        // 2. Store for BRAdd (background color adjustment)
-        setCutoutBlob(blob);
-
-        // 3. Get the original file for BRAdd (needed for dimensions & DPI)
-        if (currentFile) {
-          const fileObj = await readFile(currentFile.storageKey);
-          setOriginalFileForCutout(fileObj);
-        }
+        setMetadataForCutout(metadata);
+        localStorage.setItem(METADATA_STORAGE_KEY, JSON.stringify(metadata));
       } catch (error) {
-        alert(`Save failed: ${error instanceof Error ? error.message : String(error)}`);
+        alert(`Processing failed: ${error instanceof Error ? error.message : String(error)}`);
       } finally {
         setIsLoading(false);
       }
     },
-    [save, currentFile, readFile]
+    []
   );
 
-  // Regenerate: clear cutout data so BRAdd disappears
   const handleRegenerate = useCallback(() => {
-    setCutoutBlob(null);
-    setOriginalFileForCutout(null);
+    setMetadataForCutout(null);
+    localStorage.removeItem(METADATA_STORAGE_KEY);
   }, []);
 
-  // When BRAdd applies background color and exports
   const handleComplete = useCallback(
     async (blob: Blob) => {
-      setIsLoading(true);
-      try {
-        const ext = blob.type.split('/')[1] || 'png';
-        const resultFile = new File([blob], `final.${ext}`, { type: blob.type });
-        // Save as a new process file (or replace current)
-        await save([resultFile]);
-        // Clear cutout data so BRAdd closes
-        setCutoutBlob(null);
-        setOriginalFileForCutout(null);
-      } catch (error) {
-        alert(`Export failed: ${error instanceof Error ? error.message : String(error)}`);
-      } finally {
-        setIsLoading(false);
-      }
+      // BRAdd already saves to 'process' – no extra save
+      setIsLoading(false);
     },
-    [save]
+    []
   );
-
-  // ─── File Handlers ──────────────────────────────────────────
 
   const handleUpload = useCallback(
     async (files: File[]) => {
       setIsLoading(true);
       try {
         await upload(files);
-        // Reset cutout when new file is uploaded
-        setCutoutBlob(null);
-        setOriginalFileForCutout(null);
+        setMetadataForCutout(null);
+        localStorage.removeItem(METADATA_STORAGE_KEY);
       } catch {
         // silent
       } finally {
@@ -115,8 +102,8 @@ function BackgroundRemoveTool() {
 
   const handleRemove = useCallback(async () => {
     if (currentFile) await clear();
-    setCutoutBlob(null);
-    setOriginalFileForCutout(null);
+    setMetadataForCutout(null);
+    localStorage.removeItem(METADATA_STORAGE_KEY);
   }, [currentFile, clear]);
 
   const handleAction = useCallback(
@@ -170,27 +157,17 @@ function BackgroundRemoveTool() {
 
   const hasFile = !!currentFile;
   const hasProcessed = !!latestProcessed;
-  const hasCutout = !!cutoutBlob && !!originalFileForCutout;
 
   async function syncToDB(original: any[], process: any[]) {
     const { saveCatalog } = await import('@/core/services/indexeddb');
     await saveCatalog({ original, process });
   }
 
-  // ─── RENDER ──────────────────────────────────────────────────
-
   return (
     <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
       <Grid minCardWidth={360} gap={16}>
         <Stagger delay={100}>
-          {/* ─── FileUpload ────────────────────────────────────── */}
-          <Motion
-            preset={zoomIn}
-            as="div"
-            className="col-span-1"
-            delay={0}
-            style={{ opacity: 0, transform: 'scale(0.5)' }}
-          >
+          <Motion preset={zoomIn} as="div" className="col-span-1" delay={0}>
             <FileUpload
               file={currentFile}
               variant="single"
@@ -206,15 +183,8 @@ function BackgroundRemoveTool() {
             />
           </Motion>
 
-          {/* ─── BRRemove ──────────────────────────────────────── */}
           {hasFile && (
-            <Motion
-              preset={zoomIn}
-              as="div"
-              className="col-span-1"
-              delay={100}
-              style={{ opacity: 0, transform: 'scale(0.5)' }}
-            >
+            <Motion preset={zoomIn} as="div" className="col-span-1" delay={100}>
               <BRRemove
                 file={currentFile}
                 onCutoutGenerated={handleCutoutGenerated}
@@ -225,18 +195,12 @@ function BackgroundRemoveTool() {
             </Motion>
           )}
 
-          {/* ─── BRAdd ─────────────────────────────────────────── */}
-          {hasCutout && (
-            <Motion
-              preset={zoomIn}
-              as="div"
-              className="col-span-1"
-              delay={200}
-              style={{ opacity: 0, transform: 'scale(0.5)' }}
-            >
+          {/* ✅ BRAdd gets the latest cutout file ref – just like FileCard */}
+          {hasCutoutFile && (
+            <Motion preset={zoomIn} as="div" className="col-span-1" delay={200}>
               <BRAdd
-                cutoutBlob={cutoutBlob}
-                originalFile={originalFileForCutout}
+                cutoutFileRef={latestCutoutRef} // ✅ passed as prop
+                metadata={metadataForCutout}
                 isProcessing={isProcessing}
                 progress={progress}
                 onComplete={handleComplete}
@@ -248,34 +212,14 @@ function BackgroundRemoveTool() {
             </Motion>
           )}
 
-          {/* ─── FileCard (Result preview) ────────────────────── */}
           {hasProcessed && (
-            <Motion
-              preset={zoomIn}
-              as="div"
-              className="col-span-1"
-              delay={300}
-              style={{ opacity: 0, transform: 'scale(0.5)' }}
-            >
-              <FileCard
-                file={latestProcessed}
-                variant="process"
-                minWidth={360}
-                minHeight={350}
-                padding={0}
-              />
+            <Motion preset={zoomIn} as="div" className="col-span-1" delay={300}>
+              <FileCard file={latestProcessed} variant="process" minWidth={360} minHeight={350} padding={0} />
             </Motion>
           )}
 
-          {/* ─── ExportPanel ───────────────────────────────────── */}
           {hasProcessed && (
-            <Motion
-              preset={zoomIn}
-              as="div"
-              className="col-span-1"
-              delay={400}
-              style={{ opacity: 0, transform: 'scale(0.5)' }}
-            >
+            <Motion preset={zoomIn} as="div" className="col-span-1" delay={400}>
               <ExportPanel
                 file={latestProcessed}
                 variant="single"
@@ -295,7 +239,6 @@ function BackgroundRemoveTool() {
   );
 }
 
-// ─── Tool Registry Definition ──────────────────────────────
 const toolDef: Tool = {
   id: 'background-remove',
   name: 'Background Remover',

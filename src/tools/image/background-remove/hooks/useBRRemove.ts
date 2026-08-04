@@ -14,6 +14,8 @@ export function useBRRemove() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'processing' | 'ready' | 'error'>('idle');
   const [progress, setProgress] = useState(0);
   const [downloadSpeed, setDownloadSpeed] = useState(0);
+  const [loadedMB, setLoadedMB] = useState(0);      // ✅ NEW
+  const [totalMB, setTotalMB] = useState(0);        // ✅ NEW
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedModelId, setSelectedModelId] = useState<string>('isnet');
 
@@ -31,15 +33,25 @@ export function useBRRemove() {
     async (file: File): Promise<CutoutResult> => {
       setStatus('loading');
       setProgress(0);
+      setDownloadSpeed(0);
+      setLoadedMB(0);      // ✅ NEW
+      setTotalMB(0);       // ✅ NEW
       setErrorMessage(null);
       originalFileRef.current = file;
 
       const strategy = getStrategy();
 
       try {
-        const blob = await strategy.run(file, (prog: number, speed: number) => {
+        const blob = await strategy.run(file, (prog: number, speed: number, loaded?: number, total?: number) => {
           setProgress(prog);
           setDownloadSpeed(speed);
+          
+          // ✅ NEW: Update MB values if provided
+          if (loaded !== undefined && total !== undefined) {
+            setLoadedMB(loaded);
+            setTotalMB(total);
+          }
+          
           if (prog > 0 && prog < 100) {
             setStatus('processing');
           }
@@ -64,6 +76,9 @@ export function useBRRemove() {
     setStatus('idle');
     setErrorMessage(null);
     setProgress(0);
+    setDownloadSpeed(0);
+    setLoadedMB(0);
+    setTotalMB(0);
   }, []);
 
   // ─── Set selected model ──────────────────────────────────────
@@ -71,6 +86,10 @@ export function useBRRemove() {
     setSelectedModelId(modelId);
     setStatus('idle');
     setErrorMessage(null);
+    setProgress(0);
+    setDownloadSpeed(0);
+    setLoadedMB(0);
+    setTotalMB(0);
   }, []);
 
   // ─── Reset ──────────────────────────────────────────────────
@@ -78,6 +97,8 @@ export function useBRRemove() {
     setStatus('idle');
     setProgress(0);
     setDownloadSpeed(0);
+    setLoadedMB(0);
+    setTotalMB(0);
     setErrorMessage(null);
     originalFileRef.current = null;
   }, []);
@@ -86,6 +107,8 @@ export function useBRRemove() {
     status,
     progress,
     downloadSpeed,
+    loadedMB,        // ✅ NEW
+    totalMB,         // ✅ NEW
     errorMessage,
     selectedModelId,
     setSelectedModel,

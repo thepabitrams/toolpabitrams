@@ -6,5 +6,8 @@ export interface ModelStrategy {
   license: string;
   size: string;
   description: string;
-  run(file: File, onProgress: (progress: number, speed: number) => void): Promise<Blob>;
+  run(
+    file: File, 
+    onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void
+  ): Promise<Blob>;
 }

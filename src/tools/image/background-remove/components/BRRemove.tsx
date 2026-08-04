@@ -7,11 +7,13 @@ import { Button } from '@/core/components/ui/Button';
 import { useFileStore } from '@/core/store/fileStore';
 import { useBRRemove } from '../hooks/useBRRemove';
 import type { FileRef } from '@/core/store/fileRef';
-import { FiLoader, FiCheck, FiAlertCircle, FiRefreshCw, FiDownload } from 'react-icons/fi';
+import { FiLoader, FiCheck, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
+import { BRProgressStats } from './BRProgressStats';
+import { extractImageMetadata } from '@/entities/image/services/readMetadata';
 
 interface BRRemoveProps {
   file: FileRef | null;
-  onCutoutGenerated: (blob: Blob) => void;
+  onCutoutGenerated: (blob: Blob, metadata: { width?: number; height?: number; dpi?: number; unit?: string }) => void;
   className?: string;
   minWidth?: number;
   minHeight?: number;
@@ -27,12 +29,15 @@ const BRRemove: React.FC<BRRemoveProps> = ({
   padding = 0,
 }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const { readFile } = useFileStore();
+  // 🔥 FIXED: use 'upload' instead of 'save'
+  const { readFile, upload } = useFileStore();
 
   const {
     status,
     progress,
     downloadSpeed,
+    loadedMB,
+    totalMB,
     errorMessage,
     selectedModelId,
     setSelectedModel,
@@ -42,7 +47,6 @@ const BRRemove: React.FC<BRRemoveProps> = ({
     availableModels,
   } = useBRRemove();
 
-  // ─── Load image ──────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
     let objectUrl: string | null = null;
@@ -72,7 +76,6 @@ const BRRemove: React.FC<BRRemoveProps> = ({
     };
   }, [file, readFile, reset]);
 
-  // ─── Handle Generate ──────────────────────────────────────
   const handleGenerate = async () => {
     if (!file) return;
     if (status === 'loading' || status === 'processing') return;
@@ -84,12 +87,19 @@ const BRRemove: React.FC<BRRemoveProps> = ({
     }
 
     try {
+      const metadata = await extractImageMetadata(actualFile);
       const result = await generateCutout(actualFile);
       if (result && result.previewBlob) {
-        onCutoutGenerated(result.previewBlob);
+        // ✅ SAVE CUTOUT TO ORIGINAL STORE (using upload → original)
+        const ext = result.previewBlob.type.split('/')[1] || 'png';
+        const resultFile = new File([result.previewBlob], `cutout.${ext}`, { type: result.previewBlob.type });
+        await upload([resultFile]); // 🔥 now saves as original2, original3…
+
+        // ✅ Pass metadata to index
+        onCutoutGenerated(result.previewBlob, metadata);
       }
     } catch (err) {
-      // Error handled in hook
+      // error handled in hook
     }
   };
 
@@ -146,50 +156,43 @@ const BRRemove: React.FC<BRRemoveProps> = ({
               Ready
             </div>
           )}
-
-          {isProcessing && progress > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700">
-              <div
-                className="h-full bg-blue-500 transition-all duration-300"
-                style={{ width: `${Math.min(progress, 100)}%` }}
-              />
-            </div>
-          )}
         </div>
 
-        {/* ─── Model Selection ────────────────────────────────── */}
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
-          <div className="flex items-center gap-3 flex-wrap">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Model:
-            </label>
-            <select
-              value={selectedModelId}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              disabled={isBusy}
-              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {availableModels.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.name} — {model.size} ({model.license})
-                </option>
-              ))}
-            </select>
-
-            <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
-              {availableModels.find((m) => m.id === selectedModelId)?.description}
-            </span>
+        {/* ─── Model Area ──────────────────── */}
+        <div className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model:</label>
+              <select
+                value={selectedModelId}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                disabled={isBusy}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {availableModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name} — {model.size} ({model.license})
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
+                {availableModels.find((m) => m.id === selectedModelId)?.description}
+              </span>
+            </div>
           </div>
 
-          {isProcessing && downloadSpeed > 0 && (
-            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-              <FiDownload className="w-3 h-3 animate-pulse" />
-              Downloading model... {Math.round(progress)}% · {downloadSpeed.toFixed(1)} MB/s
-            </div>
+          {isLoading && (
+            <BRProgressStats
+              progress={progress}
+              speed={downloadSpeed}
+              loaded={loadedMB}
+              total={totalMB}
+              status="downloading"
+            />
           )}
         </div>
 
-        {/* ─── Action Buttons ────────────────────────────────── */}
+        {/* ─── Button Area ──────────────────── */}
         <div className="px-4 pb-4 pt-3 space-y-2">
           <Button
             onClick={isError ? handleRetry : handleGenerate}
@@ -238,5 +241,4 @@ const BRRemove: React.FC<BRRemoveProps> = ({
   );
 };
 
-// ✅ DEFAULT EXPORT
 export default BRRemove;

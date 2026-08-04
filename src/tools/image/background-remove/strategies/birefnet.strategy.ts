@@ -10,26 +10,29 @@ export const birefnetStrategy: ModelStrategy = {
   size: '94 MB',
   description: 'Highest quality, MIT licensed',
 
-  run: async (file: File, onProgress: (progress: number, speed: number) => void): Promise<Blob> => {
+    run: async (file: File, onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void): Promise<Blob> => {
     console.log('[BiRefNet] Loading model...');
-    onProgress(10, 0);
+    onProgress(10, 0, 0, 0);
 
     try {
       const pipe = await pipeline('image-segmentation', 'studioludens/birefnet-lite-512', {
-        progress_callback: (info: any) => {
-          if (info.status === 'downloading') {
-            const percent = Math.round((info.progress || 0) * 100);
-            const speed = info.speed || 0;
-            onProgress(percent, speed);
+      progress_callback: (info: any) => {
+      if (info.status === 'downloading') {
+         const percent = Math.round((info.progress || 0) * 100);
+         const speed = (info.speed || 0) / (1024 * 1024); // MB/s
+         const loaded = (info.loaded || 0) / (1024 * 1024); // MB
+         const total = (info.total || 0) / (1024 * 1024); // MB
+    
+         onProgress(percent, speed, loaded, total);
           }
         },
       });
-      onProgress(60, 0);
+      onProgress(60, 0, 0, 0);
 
       const url = URL.createObjectURL(file);
       const output = await pipe(url);
       URL.revokeObjectURL(url);
-      onProgress(85, 0);
+      onProgress(85, 0, 0, 0);
 
       // Typical pipeline output: [{ mask, score, label }, ...]
       const candidateMask = output?.[0]?.mask;
@@ -45,7 +48,7 @@ export const birefnetStrategy: ModelStrategy = {
       }
 
       const blob = await applyMaskToImage(file, maskImageData);
-      onProgress(100, 0);
+      onProgress(100, 0, 0, 0);
 
       console.log('[BiRefNet] Complete ✅');
       return blob;
