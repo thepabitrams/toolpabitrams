@@ -4,13 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import { Button } from '@/core/components/ui/Button';
-import { FiCheck, FiDownload, FiRefreshCw } from 'react-icons/fi';
+import { Select } from '@/core/components/ui/Select';
+import { IconButton } from '@/core/components/ui/IconButton';
+import { ColorPicker } from '@/core/components/ui/ColorPicker'; // ✅ NEW
+import { FiDownload, FiLoader } from 'react-icons/fi';
+import { MdDelete } from 'react-icons/md';
 import { useFileStore } from '@/core/store/fileStore';
 import { useBRAdd } from '../hooks/useBRAdd';
 import type { FileRef } from '@/core/store/fileRef';
 
 interface BRAddProps {
-  cutoutFileRef: FileRef | null; // ✅ NEW: receives the cutout file reference
+  cutoutFileRef: FileRef | null;
   metadata: { width?: number; height?: number; dpi?: number; unit?: string } | null;
   isProcessing: boolean;
   progress: number;
@@ -23,7 +27,7 @@ interface BRAddProps {
 }
 
 const BRAdd: React.FC<BRAddProps> = ({
-  cutoutFileRef, // ✅ NEW
+  cutoutFileRef,
   metadata,
   isProcessing,
   progress,
@@ -95,7 +99,7 @@ const BRAdd: React.FC<BRAddProps> = ({
       isMounted = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [cutoutFileRef, readFile]); // ✅ Re-run when prop changes
+  }, [cutoutFileRef, readFile]);
 
   // ─── Handle Complete ─────────────────────────────────────────
   const handleComplete = async () => {
@@ -148,14 +152,15 @@ const BRAdd: React.FC<BRAddProps> = ({
 
   const aspectRatio = imageDimensions ? imageDimensions.width / imageDimensions.height : 1;
   const formatOptions = [
-    { value: 'png', label: 'PNG' },
-    { value: 'jpeg', label: 'JPEG' },
-    { value: 'webp', label: 'WebP' },
+    { id: 'png', name: 'PNG' },
+    { id: 'jpeg', name: 'JPEG' },
+    { id: 'webp', name: 'WebP' },
   ];
 
   return (
     <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>
-      <Card className="overflow-hidden p-0 shadow-sm border border-gray-200 dark:border-gray-700">
+      <Card className="overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
+
         {/* ─── Image Preview ────────────────────────────────── */}
         <div className="relative w-full aspect-square min-h-[300px] sm:min-h-[400px] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
           <div className="relative" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -186,54 +191,63 @@ const BRAdd: React.FC<BRAddProps> = ({
           </div>
         </div>
 
-        {/* ─── Controls ──── */}
+        {/* ─── Controls - Google Material Style ──────────────────── */}
         <div className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
-          <div className="px-4 py-3">
-            <div className="flex justify-center">
-              <div className="flex items-center gap-2 flex-nowrap overflow-x-auto">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap flex-shrink-0">BG:</label>
-                <input
-                  type="color"
+          <div className="px-4 py-2.5">
+            
+            {/* Fixed container - No alignment changes */}
+            <div className="flex items-center justify-center gap-2 flex-wrap min-h-[36px]">
+              
+              {/* ✅ BG Color Picker - Using reusable ColorPicker */}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400">BG</label>
+                <ColorPicker
                   value={backgroundColor}
-                  onChange={(e) => setBackgroundColor(e.target.value)}
-                  className="w-8 h-8 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer p-0.5 bg-white dark:bg-gray-800 hover:border-blue-500 transition-colors flex-shrink-0"
+                  onChange={setBackgroundColor}
                   disabled={isProcessing || isExporting}
+                  size="md"
                 />
-                <span className="text-xs font-mono text-gray-600 dark:text-gray-400 min-w-[50px] flex-shrink-0">
-                  {backgroundColor.toUpperCase()}
-                </span>
-                <button
-                  onClick={() => setBackgroundColor('#ffffff')}
-                  className="p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex-shrink-0"
-                  disabled={isProcessing || isExporting}
-                  title="Reset to white"
-                >
-                  <FiRefreshCw className="w-4 h-4" />
-                </button>
-                <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap flex-shrink-0">Format:</label>
-                <select
+              </div>
+
+              {/* Delete/Reset Button - Google Material delete icon */}
+              <IconButton
+                onClick={() => setBackgroundColor('#ffffff')}
+                disabled={isProcessing || isExporting}
+                ariaLabel="Reset background to white"
+                size="md"
+                variant="standard"
+                className="flex-shrink-0"
+              >
+                <MdDelete className="w-5 h-5" />
+              </IconButton>
+
+              {/* Divider */}
+              <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
+
+              {/* Format Select Group */}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Format</label>
+                <Select
                   value={outputFormat}
-                  onChange={(e) => setOutputFormat(e.target.value as 'png' | 'jpeg' | 'webp')}
+                  onChange={(val) => setOutputFormat(val as 'png' | 'jpeg' | 'webp')}
+                  options={formatOptions}
                   disabled={isProcessing || isExporting}
-                  className="px-2 py-1 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-                >
-                  {formatOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+                  className="w-28"
+                />
               </div>
             </div>
+
+            {/* Dimensions - Subtle helper text */}
             {imageDimensions && (
-              <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 text-center">
-                📐 {imageDimensions.width} × {imageDimensions.height} px
-                {metadata?.dpi && ` · DPI: ${metadata.dpi}`}
+              <div className="mt-1.5 text-[11px] text-gray-400 dark:text-gray-500 text-center">
+                {imageDimensions.width} × {imageDimensions.height} px
+                {metadata?.dpi && ` · ${metadata.dpi} DPI`}
               </div>
             )}
           </div>
         </div>
 
-        {/* ─── Button ──────────────────────── */}
+        {/* ─── Button ────────────────────────────────── */}
         <div className="px-4 pb-4 pt-3">
           <Button
             onClick={handleComplete}
@@ -243,15 +257,17 @@ const BRAdd: React.FC<BRAddProps> = ({
           >
             {isExporting ? (
               <>
-                <FiCheck className="w-4 h-4 mr-2 animate-spin" /> Exporting...
+                <FiLoader className="w-4 h-4 mr-2 animate-spin" />
+                Processing...
               </>
             ) : (
               <>
-                <FiDownload className="w-4 h-4 mr-2" /> Apply
+                Apply Background
               </>
             )}
           </Button>
         </div>
+
       </Card>
     </Container>
   );
