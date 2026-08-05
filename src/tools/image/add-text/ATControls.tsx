@@ -10,6 +10,7 @@ import { Button } from '@/core/components/ui/Button';
 import { IconButton } from '@/core/components/ui/IconButton';
 import { Motion } from '@/core/motion/motion';
 import { inputFieldMotion } from '@/core/motion/compositions/input';
+import { Select } from '@/core/components/ui/Select';  // ✅ reusable Select
 import type { TextConfig } from './ATLogic';
 
 interface ATControlsProps {
@@ -104,9 +105,7 @@ export const ATControls: React.FC<ATControlsProps> = ({
         </div>
 
         {/* ─── ROW 1: Size | Color | BG Clear ──────────────── */}
-        {/* 🔥 FIX: Use flex-wrap + shrink items, no scrollbar */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          {/* Size Group */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Size
@@ -132,10 +131,8 @@ export const ATControls: React.FC<ATControlsProps> = ({
             </IconButton>
           </div>
 
-          {/* Divider */}
           <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
 
-          {/* Color Group */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Color
@@ -148,10 +145,8 @@ export const ATControls: React.FC<ATControlsProps> = ({
             />
           </div>
 
-          {/* Divider */}
           <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
 
-          {/* BG Color + Clear Group */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               BG
@@ -175,9 +170,7 @@ export const ATControls: React.FC<ATControlsProps> = ({
         </div>
 
         {/* ─── ROW 2: Opacity | Font Family ──────────────────── */}
-        {/* 🔥 FIX: Allow font select to shrink */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          {/* Opacity Group */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Opacity
@@ -203,34 +196,22 @@ export const ATControls: React.FC<ATControlsProps> = ({
             </IconButton>
           </div>
 
-          {/* Divider */}
           <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
 
-          {/* Font Family Group */}
+          {/* Font Family Group – now using reusable Select */}
           <div className="flex items-center gap-1.5 flex-1 min-w-[100px] max-w-[180px]">
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Font
             </label>
-            <Motion
-              preset={inputFieldMotion}
-              as="select"
+            <Select
+              options={FONTS.map((font) => ({
+                value: font,
+                label: font.split(',')[0].trim(),
+              }))}
               value={config.fontFamily}
-              onChange={(e) => onUpdateFontFamily(e.target.value)}
-              className="
-                flex-1 min-w-[60px] px-2 py-1.5
-                bg-white dark:bg-gray-800
-                border border-gray-200 dark:border-gray-700
-                rounded-lg
-                text-sm text-gray-900 dark:text-gray-100
-                truncate
-              "
-            >
-              {FONTS.map((font) => (
-                <option key={font} value={font} style={{ fontFamily: font }}>
-                  {font.split(',')[0].trim()}
-                </option>
-              ))}
-            </Motion>
+              onChange={onUpdateFontFamily}
+              className="flex-1 min-w-[60px]"
+            />
           </div>
         </div>
 

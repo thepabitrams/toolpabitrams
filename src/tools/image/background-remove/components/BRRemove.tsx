@@ -154,7 +154,7 @@ const BRRemove: React.FC<BRRemoveProps> = ({
             <Select
               value={selectedModelId}
               onChange={setSelectedModel}
-              options={availableModels.map(m => ({ id: m.id, name: m.name }))}
+              options={availableModels.map(m => ({  value: m.id, label: m.name }))}
               label="Model"
               disabled={isBusy}
             />

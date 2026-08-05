@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/core/components/ui/Card';
-import { Select } from '@/core/components/ui/Select';
+import { BSSelect } from './BSSelect';  // 👈 Your Bill Select tool
 import { useSplitStore } from '../store/useSplitStore';
 import { CURRENCIES } from '../data/currencyData';
 import { useUserCurrency } from '../hooks/useUserCurrency';
@@ -10,7 +10,6 @@ export function CurrencyCard() {
   const { detectedCurrency, isLoading } = useUserCurrency();
   const [hasSetDefault, setHasSetDefault] = useState(false);
 
-  // Auto-detect currency on mount (only once)
   useEffect(() => {
     if (!isLoading && detectedCurrency && !currency && !hasSetDefault) {
       setCurrency(detectedCurrency);
@@ -18,19 +17,17 @@ export function CurrencyCard() {
     }
   }, [detectedCurrency, isLoading, currency, setCurrency, hasSetDefault]);
 
-  // Find the selected currency
   const selectedCurrency = CURRENCIES.find(c => c.value === currency);
 
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
-        {/* Icon changes based on selected currency - gray */}
         <span className="text-lg font-medium text-gray-500 dark:text-gray-400 min-w-[28px] text-center flex-shrink-0">
           {selectedCurrency?.symbol || '💱'}
         </span>
 
-        {/* Select with searchable dropdown */}
-        <Select
+        {/* BSSelect in action */}
+        <BSSelect
           value={currency}
           onChange={setCurrency}
           options={CURRENCIES}

@@ -150,9 +150,9 @@ const BRAdd: React.FC<BRAddProps> = ({
 
   const aspectRatio = imageDimensions ? imageDimensions.width / imageDimensions.height : 1;
   const formatOptions = [
-    { id: 'png', name: 'PNG' },
-    { id: 'jpeg', name: 'JPEG' },
-    { id: 'webp', name: 'WebP' },
+    { value: 'png', label: 'PNG' },
+  { value: 'jpeg', label: 'JPEG' },
+  { value: 'webp', label: 'WebP' },
   ];
 
   return (
