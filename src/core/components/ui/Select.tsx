@@ -1,55 +1,185 @@
-// src/core/components/ui/Select.tsx
+import React, { useState, useEffect, useRef } from 'react';
+import { MdSearch } from 'react-icons/md';
+import { Input } from './Input';
 
-import React from 'react';
-
-interface SelectOption {
-  id: string;
-  name: string;
+export interface SelectOption {
+  value: string;
+  label: string;
+  searchTerms?: string[];
+  [key: string]: any;
 }
 
 interface SelectProps {
   value: string;
   onChange: (value: string) => void;
   options: SelectOption[];
-  label?: string;
-  disabled?: boolean;
   placeholder?: string;
+  disabled?: boolean;
   className?: string;
+  searchable?: boolean;
+  detectedValue?: string;
+  detectedLabel?: string;
+  renderOption?: (option: SelectOption) => React.ReactNode;
+  renderSelected?: (option: SelectOption) => React.ReactNode;
 }
 
 export const Select: React.FC<SelectProps> = ({
   value,
   onChange,
   options,
-  label,
+  placeholder = 'Select...',
   disabled = false,
-  placeholder,
   className = '',
+  searchable = false,
+  detectedValue,
+  detectedLabel = 'Detected',
+  renderOption,
+  renderSelected,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredOptions, setFilteredOptions] = useState(options);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selectedOption = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    if (!searchable || !searchTerm.trim()) {
+      setFilteredOptions(options);
+      return;
+    }
+
+    const term = searchTerm.toLowerCase().trim();
+    const filtered = options.filter((o) => {
+      const labelMatch = o.label.toLowerCase().includes(term);
+      const valueMatch = o.value.toLowerCase().includes(term);
+      const searchMatch = o.searchTerms?.some((t) => t.toLowerCase().includes(term)) || false;
+      return labelMatch || valueMatch || searchMatch;
+    });
+    setFilteredOptions(filtered);
+  }, [searchTerm, options, searchable]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setSearchTerm('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && filteredOptions.length > 0) {
+      onChange(filteredOptions[0].value);
+      setIsOpen(false);
+      setSearchTerm('');
+    }
+    if (e.key === 'Escape') {
+      setIsOpen(false);
+      setSearchTerm('');
+    }
+  };
+
+  const handleSelect = (selectedValue: string) => {
+    onChange(selectedValue);
+    setIsOpen(false);
+    setSearchTerm('');
+  };
+
+  const toggleOpen = () => {
+    if (disabled) return;
+    setIsOpen(!isOpen);
+    if (!isOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  };
+
+  const defaultRenderOption = (option: SelectOption) => (
+    <span className="flex items-center gap-2">
+      {option.symbol && <span className="text-base text-gray-500">{option.symbol}</span>}
+      <span className="text-gray-700 dark:text-gray-300">{option.label}</span>
+    </span>
+  );
+
+  const defaultRenderSelected = (option: SelectOption) => (
+    <span className="text-gray-900 dark:text-gray-100">{option.label}</span>
+  );
+
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
-      {label && (
-        <label className="text-xs font-medium text-gray-600 dark:text-gray-400 tracking-wide uppercase">
-          {label}
-        </label>
-      )}
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%2F%3E%3C%2Fsvg%3E')] bg-[length:20px] bg-[right_12px_center] bg-no-repeat pr-10"
+    <div className={`flex-1 relative ${className}`} ref={dropdownRef}>
+      {/* Display input - click to open */}
+      <div
+        className={`w-full cursor-pointer border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 flex items-center justify-between hover:border-gray-400 dark:hover:border-gray-500 transition ${
+          disabled ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+        onClick={toggleOpen}
       >
-        {placeholder && (
-          <option value="" disabled>
-            {placeholder}
-          </option>
-        )}
-        {options.map((option) => (
-          <option key={option.id} value={option.id} className="py-1">
-            {option.name}
-          </option>
-        ))}
-      </select>
+        <span>
+          {selectedOption
+            ? (renderSelected ? renderSelected(selectedOption) : defaultRenderSelected(selectedOption))
+            : <span className="text-gray-400 dark:text-gray-500">{placeholder}</span>}
+        </span>
+        <span className="text-gray-400 text-xs">
+          {isOpen ? '▲' : '▼'}
+        </span>
+      </div>
+
+      {/* Dropdown */}
+      {isOpen && !disabled && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-72 overflow-hidden">
+          {/* Search input */}
+          {searchable && (
+            <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+              <Input
+                ref={inputRef}
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full"
+                prefix={<MdSearch className="w-4 h-4 text-gray-400 dark:text-gray-500" />}
+                fullWidth
+              />
+            </div>
+          )}
+
+          {/* Options list */}
+          <div className="overflow-y-auto max-h-56">
+            {filteredOptions.length === 0 ? (
+              <div className="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                No options found
+              </div>
+            ) : (
+              filteredOptions.map((option) => (
+                <div
+                  key={option.value}
+                  className={`px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between text-sm ${
+                    option.value === value ? 'bg-gray-50 dark:bg-gray-700/50' : ''
+                  }`}
+                  onClick={() => handleSelect(option.value)}
+                >
+                  {renderOption ? renderOption(option) : defaultRenderOption(option)}
+                  {option.value === value && (
+                    <span className="text-gray-400">✓</span>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Detected indicator */}
+          {detectedValue && (
+            <div className="px-3 py-1.5 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500">
+              <MdSearch className="w-3 h-3 inline mr-1" />
+              {detectedLabel}: {options.find(o => o.value === detectedValue)?.label || detectedValue}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
