@@ -25,27 +25,24 @@ export function ExpenseFormCard() {
 
     const normalizedPayer = trimmedPayer.charAt(0).toUpperCase() + trimmedPayer.slice(1).toLowerCase();
 
-    // ─── Check if person exists ───
-    const personExists = people.some(p => p.toLowerCase() === normalizedPayer.toLowerCase());
-
-    // ─── Build the participants list BEFORE adding expense ───
-    let updatedPeople = [...people];
-
-    if (!personExists) {
+    // ─── Check if person exists using current state ───
+    let currentPeople = people;
+    if (!currentPeople.some(p => p.toLowerCase() === normalizedPayer.toLowerCase())) {
       addPerson(normalizedPayer);
-      updatedPeople = [...people, normalizedPayer];
+      // ─── Get the UPDATED people list directly from store ───
+      currentPeople = useSplitStore.getState().people;
     }
 
-    // ─── Get final payer from UPDATED list ───
-    const finalPayer = updatedPeople.find(p => p.toLowerCase() === normalizedPayer.toLowerCase()) || normalizedPayer;
+    // ─── Get final payer from current list ───
+    const finalPayer = currentPeople.find(p => p.toLowerCase() === normalizedPayer.toLowerCase()) || normalizedPayer;
     const finalAmount = amount.trim() ? parseFloat(amount) : 0;
 
-    // ─── Add expense with UPDATED participants list ───
+    // ─── Add expense with current participants ───
     addExpense({
       description: 'Expense',
       amount: finalAmount,
       payer: finalPayer,
-      participants: updatedPeople.length > 0 ? updatedPeople : [finalPayer],
+      participants: currentPeople.length > 0 ? currentPeople : [finalPayer],
     });
 
     setAmount('');
@@ -62,7 +59,6 @@ export function ExpenseFormCard() {
   return (
     <Card className="p-4">
       <div className="space-y-3">
-        {/* Row 1: Amount (Optional) */}
         <Input
           type="number"
           placeholder="Amount"
@@ -73,7 +69,6 @@ export function ExpenseFormCard() {
           onKeyDown={handleKeyDown}
         />
 
-        {/* Row 2: Who paid? (REQUIRED) */}
         <div className="w-full">
           {shakeTrigger > 0 ? (
             <Motion
@@ -109,7 +104,6 @@ export function ExpenseFormCard() {
           )}
         </div>
 
-        {/* Row 3: Add Expense button */}
         <Button
           onClick={handleSubmit}
           className="w-full"
