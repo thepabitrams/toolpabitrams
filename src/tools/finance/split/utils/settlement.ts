@@ -1,4 +1,17 @@
-// Balances: positive = gets money back, negative = owes
+/**
+ * ─── ROUND TO 2 DECIMAL PLACES ───
+ */
+function round(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/**
+ * ─── CALCULATE BALANCES ───
+ * 
+ * For each person: Balance = (Amount Paid) - (Total / Number of Participants)
+ * Positive = gets money back (overpaid)
+ * Negative = owes money (underpaid)
+ */
 export function calculateBalances(
   people: string[],
   expenses: { amount: number; payer: string; participants: string[] }[]
@@ -7,42 +20,77 @@ export function calculateBalances(
   people.forEach((p) => balances.set(p, 0));
 
   for (const expense of expenses) {
-    const share = expense.amount / expense.participants.length;
+    if (expense.participants.length === 0) continue;
+    
+    const share = round(expense.amount / expense.participants.length);
+    
+    // Subtract share from all participants
     for (const p of expense.participants) {
-      balances.set(p, (balances.get(p) || 0) - share);
+      const current = balances.get(p) || 0;
+      balances.set(p, round(current - share));
     }
-    balances.set(expense.payer, (balances.get(expense.payer) || 0) + expense.amount);
+    
+    // Add full amount to payer
+    const currentPayer = balances.get(expense.payer) || 0;
+    balances.set(expense.payer, round(currentPayer + expense.amount));
+  }
+
+  // Final rounding for all balances
+  for (const [person, amount] of balances) {
+    balances.set(person, round(amount));
   }
 
   return balances;
 }
 
-// Greedy algorithm: minimize number of transactions
+/**
+ * ─── CALCULATE TRANSACTIONS (GREEDY ALGORITHM) ───
+ * 
+ * Matches biggest debtor with biggest creditor.
+ * This minimizes the number of transactions.
+ */
 export function calculateTransactions(
   balances: Map<string, number>
 ): { from: string; to: string; amount: number }[] {
-  const sorted = Array.from(balances.entries())
-    .filter(([, amount]) => Math.abs(amount) > 0.01)
-    .sort((a, b) => a[1] - b[1]);
+  // Get all non-zero balances
+  const entries = Array.from(balances.entries())
+    .map(([person, amount]) => [person, round(amount)] as [string, number])
+    .filter(([, amount]) => Math.abs(amount) > 0.01);
+
+  if (entries.length === 0) {
+    return [];
+  }
+
+  // Split into debtors (negative) and creditors (positive)
+  const debtors = entries
+    .filter(([, amount]) => amount < 0)
+    .sort((a, b) => a[1] - b[1]); // Most negative first (owes the most)
+
+  const creditors = entries
+    .filter(([, amount]) => amount > 0)
+    .sort((a, b) => b[1] - a[1]); // Most positive first (gets the most)
 
   const transactions: { from: string; to: string; amount: number }[] = [];
-  let i = 0,
-    j = sorted.length - 1;
+  let i = 0;
+  let j = 0;
 
-  while (i < j) {
-    const [debtor, debt] = sorted[i];
-    const [creditor, credit] = sorted[j];
-    const amount = Math.min(-debt, credit);
+  while (i < debtors.length && j < creditors.length) {
+    const [debtor, debt] = debtors[i];
+    const [creditor, credit] = creditors[j];
+    const amount = Math.min(Math.abs(debt), credit);
+    const roundedAmount = round(amount);
 
-    if (amount > 0.01) {
-      transactions.push({ from: debtor, to: creditor, amount });
+    if (roundedAmount > 0.01) {
+      transactions.push({ from: debtor, to: creditor, amount: roundedAmount });
     }
 
-    sorted[i] = [debtor, debt + amount];
-    sorted[j] = [creditor, credit - amount];
+    // Update balances
+    debtors[i] = [debtor, round(debt + roundedAmount)];
+    creditors[j] = [creditor, round(credit - roundedAmount)];
 
-    if (Math.abs(sorted[i][1]) < 0.01) i++;
-    if (Math.abs(sorted[j][1]) < 0.01) j--;
+    // Move to next if settled
+    if (Math.abs(debtors[i][1]) < 0.01) i++;
+    if (Math.abs(creditors[j][1]) < 0.01) j++;
   }
 
   return transactions;

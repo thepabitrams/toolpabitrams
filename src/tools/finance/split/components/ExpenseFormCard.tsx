@@ -8,7 +8,6 @@ import { shake } from '@/core/motion/presets/shake';
 
 export function ExpenseFormCard() {
   const { people, addPerson, addExpense, currency } = useSplitStore();
-  const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [payerName, setPayerName] = useState('');
   const [shakeTrigger, setShakeTrigger] = useState(0);
@@ -16,8 +15,8 @@ export function ExpenseFormCard() {
 
   const handleSubmit = () => {
     const trimmedPayer = payerName.trim();
-    
-    // ONLY required field: Name → SHAKE!
+
+    // ─── REQUIRED: Name ───
     if (!trimmedPayer) {
       setShakeTrigger(prev => prev + 1);
       nameInputRef.current?.focus();
@@ -25,22 +24,30 @@ export function ExpenseFormCard() {
     }
 
     const normalizedPayer = trimmedPayer.charAt(0).toUpperCase() + trimmedPayer.slice(1).toLowerCase();
-    if (!people.some(p => p.toLowerCase() === normalizedPayer.toLowerCase())) {
+
+    // ─── Check if person exists ───
+    const personExists = people.some(p => p.toLowerCase() === normalizedPayer.toLowerCase());
+
+    // ─── Build the participants list BEFORE adding expense ───
+    let updatedPeople = [...people];
+
+    if (!personExists) {
       addPerson(normalizedPayer);
+      updatedPeople = [...people, normalizedPayer];
     }
 
-    const finalPayer = people.find(p => p.toLowerCase() === normalizedPayer.toLowerCase()) || normalizedPayer;
-    const finalDescription = description.trim() || 'Expense';
+    // ─── Get final payer from UPDATED list ───
+    const finalPayer = updatedPeople.find(p => p.toLowerCase() === normalizedPayer.toLowerCase()) || normalizedPayer;
     const finalAmount = amount.trim() ? parseFloat(amount) : 0;
 
+    // ─── Add expense with UPDATED participants list ───
     addExpense({
-      description: finalDescription,
+      description: 'Expense',
       amount: finalAmount,
       payer: finalPayer,
-      participants: people.length > 0 ? people : [finalPayer],
+      participants: updatedPeople.length > 0 ? updatedPeople : [finalPayer],
     });
 
-    setDescription('');
     setAmount('');
     setPayerName('');
   };
@@ -55,49 +62,28 @@ export function ExpenseFormCard() {
   return (
     <Card className="p-4">
       <div className="space-y-3">
-        {/* Row 1: What for? (Optional) */}
+        {/* Row 1: Amount (Optional) */}
         <Input
-          placeholder="What for? (e.g., Dinner)"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          type="number"
+          placeholder="Amount"
+          prefix={currency}
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="w-full"
           onKeyDown={handleKeyDown}
         />
 
-        {/* Row 2: Amount (Optional) + Who paid? (REQUIRED) */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Input
-            type="number"
-            placeholder="Amount"
-            prefix={currency}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="flex-1"
-            onKeyDown={handleKeyDown}
-          />
-          
-          {/* Shake wrapper - only active when shakeTrigger > 0 */}
-          <div className="flex-1">
-            {shakeTrigger > 0 ? (
-              <Motion
-                key={shakeTrigger}
-                preset={shake}
-                as="div"
-                duration={500}
-                easing="ease-in-out"
-                className="w-full"
-              >
-                <Input
-                  ref={nameInputRef}
-                  id="payer-name-input"
-                  placeholder="Who paid? * (PabitraMS)"
-                  value={payerName}
-                  onChange={(e) => setPayerName(e.target.value)}
-                  className="w-full"
-                  onKeyDown={handleKeyDown}
-                  required
-                />
-              </Motion>
-            ) : (
+        {/* Row 2: Who paid? (REQUIRED) */}
+        <div className="w-full">
+          {shakeTrigger > 0 ? (
+            <Motion
+              key={shakeTrigger}
+              preset={shake}
+              as="div"
+              duration={500}
+              easing="ease-in-out"
+              className="w-full"
+            >
               <Input
                 ref={nameInputRef}
                 id="payer-name-input"
@@ -108,14 +94,25 @@ export function ExpenseFormCard() {
                 onKeyDown={handleKeyDown}
                 required
               />
-            )}
-          </div>
+            </Motion>
+          ) : (
+            <Input
+              ref={nameInputRef}
+              id="payer-name-input"
+              placeholder="Who paid? * (PabitraMS)"
+              value={payerName}
+              onChange={(e) => setPayerName(e.target.value)}
+              className="w-full"
+              onKeyDown={handleKeyDown}
+              required
+            />
+          )}
         </div>
 
         {/* Row 3: Add Expense button */}
-        <Button 
-          onClick={handleSubmit} 
-          className="w-full" 
+        <Button
+          onClick={handleSubmit}
+          className="w-full"
           variant="primary"
         >
           Add Expense
