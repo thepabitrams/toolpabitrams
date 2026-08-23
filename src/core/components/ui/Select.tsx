@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Motion } from '@/core/motion/motion';
-import { inputFieldMotion } from '@/core/motion/compositions/input';
 
 export interface SelectOption {
   value: string;
@@ -11,7 +10,7 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
   options: SelectOption[];
   value: string;
   onChange: (value: string) => void;
-  placeholder?: string;          // shows as disabled first option
+  placeholder?: string;
   className?: string;
 }
 
@@ -23,9 +22,26 @@ export const Select: React.FC<SelectProps> = ({
   className = '',
   ...rest
 }) => {
+  // Inject CSS once for :open pseudo-class
+  useEffect(() => {
+    const styleId = 'select-open-glow';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        /* 🔥 GLOW ONLY WHEN DROPDOWN IS OPEN! */
+        select:open {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+          outline: none !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+
   return (
     <Motion
-      preset={inputFieldMotion}
       as="select"
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -36,6 +52,8 @@ export const Select: React.FC<SelectProps> = ({
         rounded-lg
         text-sm text-gray-900 dark:text-gray-100
         truncate
+        transition-colors duration-200 ease-out
+        focus:outline-none
         ${className}
       `}
       {...rest}
