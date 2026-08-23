@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useCallback } from 'react';
 import { Motion } from '@/core/motion/motion';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
@@ -8,21 +6,20 @@ import { Stagger } from '@/core/motion/Stagger';
 import { useFileStore } from '@/core/store/fileStore';
 import { FileCard } from '@/shared/components/FileCard';
 import { ExportPanel } from '@/shared/components/ExportPanel';
-import WallpaperPreview from './WallpaperPreview';
-import WallpaperControls from './WallpaperControls';
-import { useWallpaperGenerator } from './useWallpaperGenerator';
+import Preview from './Preview';
+import Controls from './Controls';
+import { useGenerator } from './useGenerator';
 
 const TOOL_ID = 'wallpaper';
 
-interface WallpaperToolProps {
+interface WallpaperProps {
   category: string;
   toolId: string;
 }
 
-export default function WallpaperTool({ category, toolId }: WallpaperToolProps) {
+export default function Wallpaper({ category, toolId }: WallpaperProps) {
   const { list, save, clear, promote, remove } = useFileStore();
   const [isGenerating, setIsGenerating] = useState(false);
-
   const [color, setColor] = useState('#3B82F6');
   const [width, setWidth] = useState(1920);
   const [height, setHeight] = useState(1080);
@@ -30,8 +27,8 @@ export default function WallpaperTool({ category, toolId }: WallpaperToolProps) 
 
   const processedFiles = list('process');
   const latestProcessed = processedFiles.length > 0 ? processedFiles[processedFiles.length - 1] : null;
-
-  const { generateWallpaper } = useWallpaperGenerator();
+  const { generateWallpaper } = useGenerator();
+  const hasProcessed = !!latestProcessed;
 
   const handleGenerate = useCallback(async () => {
     setIsGenerating(true);
@@ -66,7 +63,6 @@ export default function WallpaperTool({ category, toolId }: WallpaperToolProps) 
       }
 
       const latestName = processedFiles[processedFiles.length - 1]?.name;
-
       const state = useFileStore.getState();
       const targetOriginals = state.original.filter(f => f.toolId === selectedToolId);
 
@@ -105,13 +101,10 @@ export default function WallpaperTool({ category, toolId }: WallpaperToolProps) 
     [list, promote, remove]
   );
 
-  const hasProcessed = !!latestProcessed;
-
   return (
     <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
       <Grid minCardWidth={360} gap={16}>
         <Stagger delay={100}>
-          {/* 1. Preview Card */}
           <Motion
             preset={zoomIn}
             as="div"
@@ -119,9 +112,9 @@ export default function WallpaperTool({ category, toolId }: WallpaperToolProps) 
             delay={0}
             style={{ opacity: 0, transform: 'scale(0.5)' }}
           >
-            <WallpaperPreview 
-              color={color} 
-              width={width} 
+            <Preview
+              color={color}
+              width={width}
               height={height}
               minWidth={360}
               minHeight={420}
@@ -129,7 +122,6 @@ export default function WallpaperTool({ category, toolId }: WallpaperToolProps) 
             />
           </Motion>
 
-          {/* 2. Controls Card */}
           <Motion
             preset={zoomIn}
             as="div"
@@ -137,7 +129,7 @@ export default function WallpaperTool({ category, toolId }: WallpaperToolProps) 
             delay={100}
             style={{ opacity: 0, transform: 'scale(0.5)' }}
           >
-            <WallpaperControls
+            <Controls
               color={color}
               onColorChange={setColor}
               width={width}
@@ -154,7 +146,6 @@ export default function WallpaperTool({ category, toolId }: WallpaperToolProps) 
             />
           </Motion>
 
-          {/* 3. Processed File Card */}
           {hasProcessed && (
             <Motion
               preset={zoomIn}
@@ -173,7 +164,6 @@ export default function WallpaperTool({ category, toolId }: WallpaperToolProps) 
             </Motion>
           )}
 
-          {/* 4. Export Panel */}
           {hasProcessed && (
             <Motion
               preset={zoomIn}

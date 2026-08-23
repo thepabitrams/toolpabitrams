@@ -1,7 +1,7 @@
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 
-interface WallpaperPreviewProps {
+interface PreviewProps {
   color: string;
   width: number;
   height: number;
@@ -11,18 +11,17 @@ interface WallpaperPreviewProps {
   className?: string;
 }
 
-export default function WallpaperPreview({ 
-  color, 
-  width, 
+export default function Preview({
+  color,
+  width,
   height,
   minWidth = 360,
   minHeight = 420,
   padding = 0,
   className = '',
-}: WallpaperPreviewProps) {
+}: PreviewProps) {
   return (
-    // 🔥 ONLY OUTER CONTAINER ADDED – SAME AS FILECARD!
-    <Container 
+    <Container
       className={`px-0 flex-1 ${className}`}
       style={{
         minWidth: `${minWidth}px`,
@@ -30,10 +29,9 @@ export default function WallpaperPreview({
         padding: `${padding}px`,
       }}
     >
-      {/* 🔥 INSIDE CARD – COMPLETELY UNCHANGED! KEPT AS IS! */}
-      <Card 
-        className="overflow-hidden p-0 shadow-lg bg-white dark:bg-gray-900" 
-        style={{ 
+      <Card
+        className="overflow-hidden p-0 shadow-lg bg-white dark:bg-gray-900"
+        style={{
           width: '100%',
           height: '420px',
           minHeight: '420px',
@@ -42,7 +40,7 @@ export default function WallpaperPreview({
           flexGrow: 0,
         }}
       >
-        <Container 
+        <Container
           className="px-0 w-full h-full flex items-center justify-center"
           style={{
             paddingLeft: '16px',
@@ -51,9 +49,7 @@ export default function WallpaperPreview({
             paddingBottom: 0,
           }}
         >
-          <div 
-            className="w-full h-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center"
-          >
+          <div className="w-full h-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
             <div
               style={{
                 backgroundColor: color,

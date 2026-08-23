@@ -6,22 +6,12 @@ import { Select, type SelectOption } from '@/core/components/ui/Select';
 import { Button } from '@/core/components/ui/Button';
 import { useState, useEffect } from 'react';
 
-// 🔥 MINIMAL PRESETS – ONLY WHAT YOU NEED!
+// ✅ MERGED – NO DUPLICATES!
 const DIMENSION_OPTIONS: SelectOption[] = [
-  // 🖥️ Desktop (1 most used)
   { value: '1920x1080', label: 'Desktop HD (1920×1080)' },
-  
-  // 📱 Mobile (1 most used)
-  { value: '1080x1920', label: 'Mobile Portrait (1080×1920)' },
-  
-  // 📟 Tablet (1 most used)
+  { value: '1080x1920', label: 'Mobile & Social Stories (1080×1920)' },
   { value: '2048x2732', label: 'iPad Pro (2048×2732)' },
-  
-  // 🎬 Social Media (both)
-  { value: '1080x1920', label: 'Social Stories/Status (1080×1920)' },
-  { value: '1080x1080', label: 'Social Square (1080×1080)' },
-  
-  // 🔧 Custom
+  { value: '1080x1080', label: 'Square (1080×1080)' },
   { value: 'custom', label: 'Custom' },
 ];
 
@@ -36,7 +26,7 @@ const PRESET_COLORS = [
   '#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3',
 ];
 
-interface WallpaperControlsProps {
+interface ControlsProps {
   color: string;
   onColorChange: (c: string) => void;
   width: number;
@@ -53,7 +43,7 @@ interface WallpaperControlsProps {
   className?: string;
 }
 
-export default function WallpaperControls({
+export default function Controls({
   color,
   onColorChange,
   width,
@@ -68,7 +58,7 @@ export default function WallpaperControls({
   minHeight = 350,
   padding = 0,
   className = '',
-}: WallpaperControlsProps) {
+}: ControlsProps) {
   const findPreset = (w: number, h: number) => {
     const match = DIMENSION_OPTIONS.find(
       (opt) => opt.value !== 'custom' && opt.value === `${w}x${h}`
@@ -95,7 +85,7 @@ export default function WallpaperControls({
   const isCustom = selectedPreset === 'custom';
 
   return (
-    <Container 
+    <Container
       className={`px-0 flex-1 ${className}`}
       style={{
         minWidth: `${minWidth}px`,
@@ -104,7 +94,6 @@ export default function WallpaperControls({
       }}
     >
       <Card className="p-4 space-y-4 w-full h-full">
-        {/* Color */}
         <div>
           <label className="text-sm font-medium block mb-1.5">Pick a Color</label>
           <div className="flex items-center gap-3">
@@ -121,8 +110,8 @@ export default function WallpaperControls({
               <button
                 key={c}
                 className={`w-7 h-7 rounded-full border-2 transition-all ${
-                  color === c 
-                    ? 'border-blue-500 scale-110 shadow-md ring-2 ring-blue-500/30' 
+                  color === c
+                    ? 'border-blue-500 scale-110 shadow-md ring-2 ring-blue-500/30'
                     : 'border-gray-300 dark:border-gray-600 hover:scale-110'
                 }`}
                 style={{ backgroundColor: c }}
@@ -133,7 +122,6 @@ export default function WallpaperControls({
           </div>
         </div>
 
-        {/* Dimensions */}
         <div>
           <label className="text-sm font-medium block mb-1.5">Dimensions</label>
           <Select
@@ -171,7 +159,6 @@ export default function WallpaperControls({
           </div>
         </div>
 
-        {/* File Type */}
         <div>
           <label className="text-sm font-medium block mb-1.5">File Type</label>
           <Select
@@ -182,7 +169,6 @@ export default function WallpaperControls({
           />
         </div>
 
-        {/* Generate Button */}
         <Button
           variant="primary"
           onClick={onGenerate}

@@ -1,4 +1,4 @@
-export function useWallpaperGenerator() {
+export function useGenerator() {
   const generateWallpaper = async (
     color: string,
     width: number,

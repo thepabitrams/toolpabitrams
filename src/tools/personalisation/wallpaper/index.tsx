@@ -1,13 +1,13 @@
 import { Tool } from '@/core/registry/toolRegistry';
-import WallpaperTool from './WallpaperTool';
+import Wallpaper from './Wallpaper';
 
 const tool: Tool = {
   id: 'wallpaper',
-  name: 'Wallpaper Studio',
+  name: 'Wallpaper',
   description: 'Create solid color wallpapers in any size and format.',
   category: 'personalisation',
   input: 'none',
-  component: WallpaperTool,
+  component: Wallpaper,
 };
 
 export default tool;
