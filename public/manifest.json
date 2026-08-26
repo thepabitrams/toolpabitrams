@@ -1,0 +1,74 @@
+[
+  {
+    "id": "split",
+    "name": "Split",
+    "description": "Split bills and expenses fairly with friends — no signup required.",
+    "category": "finance"
+  },
+  {
+    "id": "tenant-billing",
+    "name": "Tenant Billing",
+    "description": "Manage properties, tenants, and monthly bills",
+    "category": "houseandhome"
+  },
+  {
+    "id": "add-text",
+    "name": "Add Text",
+    "description": "Add text overlay to your image",
+    "category": "image"
+  },
+  {
+    "id": "adjust-size",
+    "name": "Adjust Size",
+    "description": "Adjust image file size to fit within a range",
+    "category": "image"
+  },
+  {
+    "id": "background-remove",
+    "name": "Background Remove",
+    "description": "Remove background from images with AI",
+    "category": "image"
+  },
+  {
+    "id": "convert-image",
+    "name": "Convert Image",
+    "description": "Convert images to different formats",
+    "category": "image"
+  },
+  {
+    "id": "flip-rotate",
+    "name": "Flip Rotate",
+    "description": "Rotate and flip your image",
+    "category": "image"
+  },
+  {
+    "id": "form-crop",
+    "name": "Form Crop",
+    "description": "Crop images with precision",
+    "category": "image"
+  },
+  {
+    "id": "image-filters",
+    "name": "Image Filters",
+    "description": "Apply professional filters to your images",
+    "category": "image"
+  },
+  {
+    "id": "image-to-pdf",
+    "name": "Image To Pdf",
+    "description": "Convert images to PDF",
+    "category": "image"
+  },
+  {
+    "id": "merge-images",
+    "name": "Merge Images",
+    "description": "Combine multiple images into one",
+    "category": "image"
+  },
+  {
+    "id": "wallpaper",
+    "name": "Wallpaper",
+    "description": "Create solid color wallpapers in any size and format.",
+    "category": "personalisation"
+  }
+]

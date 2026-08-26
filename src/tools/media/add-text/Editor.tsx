@@ -1,13 +1,12 @@
-// src/tools/image/add-text/ATCard.tsx
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import { useFileStore } from '@/core/store/fileStore';
-import { ATControls } from './ATControls';
-import { useATLogic } from './ATLogic';
+import { Controls } from './Controls';
+import { useEditor } from './useEditor';
 import type { FileRef } from '@/core/store/fileStore';
 
-interface ATCardProps {
+interface EditorProps {
   file: FileRef | null;
   onProcess: (blob: Blob) => Promise<void>;
   className?: string;
@@ -16,7 +15,7 @@ interface ATCardProps {
   padding?: number;
 }
 
-export const ATCard: React.FC<ATCardProps> = ({
+export const Editor: React.FC<EditorProps> = ({
   file,
   onProcess,
   className = '',
@@ -27,7 +26,6 @@ export const ATCard: React.FC<ATCardProps> = ({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const [isExporting, setIsExporting] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const { readFile } = useFileStore();
 
   const {
@@ -44,9 +42,8 @@ export const ATCard: React.FC<ATCardProps> = ({
     reset,
     hasChanges,
     processImage,
-  } = useATLogic();
+  } = useEditor();
 
-  // ─── Load image ──────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
     let objectUrl: string | null = null;
@@ -81,7 +78,6 @@ export const ATCard: React.FC<ATCardProps> = ({
     };
   }, [file, readFile]);
 
-  // ─── Handle Export ───────────────────────────────────────
   const handleApply = async () => {
     if (!file || isExporting) return;
     setIsExporting(true);
@@ -107,11 +103,9 @@ export const ATCard: React.FC<ATCardProps> = ({
     );
   }
 
-  // ─── Split lines ──────────────────────────────────────────
   const lines = config.content.split('\n');
   const hasContent = lines.some(line => line.trim() || line === '');
 
-  // ─── Get text container styles ──────────────────────────
   const getTextContainerStyle = (): React.CSSProperties => {
     const base: React.CSSProperties = {
       position: 'absolute',
@@ -143,7 +137,6 @@ export const ATCard: React.FC<ATCardProps> = ({
     return base;
   };
 
-  // ─── Text background style ──────────────────────────────
   const getTextBgStyle = (): React.CSSProperties => {
     const base: React.CSSProperties = {
       display: 'flex',
@@ -169,7 +162,6 @@ export const ATCard: React.FC<ATCardProps> = ({
     };
   };
 
-  // ─── Wrapper aspect ratio ────────────────────────────────
   const wrapperAspect = imageDimensions.width && imageDimensions.height
     ? imageDimensions.width / imageDimensions.height
     : 1;
@@ -177,9 +169,7 @@ export const ATCard: React.FC<ATCardProps> = ({
   return (
     <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>
       <Card className="overflow-hidden p-0">
-        {/* ─── Gray Container ─── */}
         <div
-          ref={containerRef}
           className="relative w-full aspect-square min-h-[300px] sm:min-h-[400px] bg-gray-100 dark:bg-gray-800"
           style={{
             display: 'flex',
@@ -188,7 +178,6 @@ export const ATCard: React.FC<ATCardProps> = ({
             overflow: 'hidden',
           }}
         >
-          {/* ─── WRAPPER – EXACT image aspect ratio ─── */}
           <div
             style={{
               position: 'relative',
@@ -200,7 +189,6 @@ export const ATCard: React.FC<ATCardProps> = ({
               flexShrink: 0,
             }}
           >
-            {/* ─── Image ─── */}
             <img
               src={imageUrl}
               alt="Preview"
@@ -212,7 +200,6 @@ export const ATCard: React.FC<ATCardProps> = ({
               }}
             />
 
-            {/* ─── Text Overlay ──────────────────────────── */}
             {hasContent && (
               <div style={getTextContainerStyle()}>
                 <div style={getTextBgStyle()}>
@@ -237,8 +224,7 @@ export const ATCard: React.FC<ATCardProps> = ({
           </div>
         </div>
 
-        {/* ─── Controls ────────────────────────────────────── */}
-        <ATControls
+        <Controls
           config={config}
           onUpdateText={updateText}
           onUpdateFontSize={updateFontSize}

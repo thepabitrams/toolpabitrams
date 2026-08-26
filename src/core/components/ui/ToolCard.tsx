@@ -1,4 +1,3 @@
-// src/core/components/ui/ToolCard.tsx
 import { memo, useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToolStore } from '@/core/store/toolStore';
@@ -13,12 +12,16 @@ interface ToolCardProps {
   tool: Tool;
   variant?: 'grid' | 'list';
   onToolSelect?: (toolId: string) => void;
+  onToolHover?: (toolId: string) => void;
+  isLoading?: boolean;
 }
 
 export const ToolCard = memo(function ToolCard({
   tool,
   variant = 'grid',
   onToolSelect,
+  onToolHover,
+  isLoading,
 }: ToolCardProps) {
   const navigate = useNavigate();
   const { favorites, toggleFavorite, incrementUsage } = useToolStore();
@@ -56,16 +59,16 @@ export const ToolCard = memo(function ToolCard({
     }
   }, [tool.name]);
 
-  // ============================================================
-  // LIST VIEW
-  // ============================================================
   if (variant === 'list') {
     return (
       <Motion
         preset={toolCardListMotion}
         as="div"
-        className="flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer select-none"
+        className={`flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer select-none transition-opacity ${
+          isLoading ? 'opacity-50 cursor-wait' : ''
+        }`}
         onClick={handleClick}
+        onMouseEnter={() => onToolHover?.(tool.id)}
       >
         <div className="flex-1 min-w-0 overflow-hidden">
           {isOverflowing ? (
@@ -101,9 +104,6 @@ export const ToolCard = memo(function ToolCard({
     );
   }
 
-  // ============================================================
-  // GRID VIEW
-  // ============================================================
   return (
     <Motion
       preset={toolCardGridMotion}
@@ -115,8 +115,11 @@ export const ToolCard = memo(function ToolCard({
         rounded-2xl 
         border border-gray-200/50 dark:border-gray-800/50
         overflow-hidden
+        transition-opacity
+        ${isLoading ? 'opacity-50 cursor-wait' : ''}
       `}
       onClick={handleClick}
+      onMouseEnter={() => onToolHover?.(tool.id)}
     >
       <div className="relative p-6">
         <button

@@ -1,6 +1,4 @@
-// src/tools/image/add-text/index.tsx
 import React, { useState, useCallback } from 'react';
-import { Tool } from '@/core/registry/toolRegistry';
 import { useFileStore } from '@/core/store/fileStore';
 import { FileUpload } from '@/shared/components/FileUpload';
 import { FileCard } from '@/shared/components/FileCard';
@@ -9,18 +7,15 @@ import { Motion } from '@/core/motion/motion';
 import { Stagger } from '@/core/motion/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { Grid } from '@/core/components/ui/Grid';
-import { ATCard } from './ATCard';
+import { Editor } from './Editor';
 import { IMAGE_CONFIG } from '@/entities/image/services/config';
 
-const TOOL_ID = 'add-text';
-
-interface AddTextToolProps {
-  category: string;
+interface AddTextProps {
   toolId: string;
 }
 
-function AddTextTool({ category, toolId }: AddTextToolProps) {
-  const { list, upload, save, clear, promote, readFile, remove } = useFileStore();
+function AddText({ toolId }: AddTextProps) {
+  const { list, upload, save, clear, promote, remove } = useFileStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const originalFiles = list('original');
@@ -76,7 +71,7 @@ function AddTextTool({ category, toolId }: AddTextToolProps) {
         return;
       }
 
-      const processedFiles = list('process');
+      // Reuse outer processedFiles instead of calling list('process') again
       if (processedFiles.length === 0) {
         alert('No processed files to promote');
         return;
@@ -106,7 +101,6 @@ function AddTextTool({ category, toolId }: AddTextToolProps) {
             useFileStore.getState().process
           );
         } else {
-          // Cancel: stay in current tool
           return;
         }
       }
@@ -119,7 +113,7 @@ function AddTextTool({ category, toolId }: AddTextToolProps) {
 
       window.location.href = `/${selectedToolId}`;
     },
-    [list, promote, remove]
+    [processedFiles, promote, remove]   // depend on processedFiles
   );
 
   const hasFile = !!currentFile;
@@ -164,7 +158,7 @@ function AddTextTool({ category, toolId }: AddTextToolProps) {
               delay={100}
               style={{ opacity: 0, transform: 'scale(0.5)' }}
             >
-              <ATCard
+              <Editor
                 file={currentFile}
                 onProcess={handleProcess}
                 minWidth={360}
@@ -219,13 +213,4 @@ function AddTextTool({ category, toolId }: AddTextToolProps) {
   );
 }
 
-const toolDef: Tool = {
-  id: 'add-text',
-  name: 'Add Text',
-  description: 'Add text overlay to your image',
-  category: 'image',
-  input: 'single',
-  component: AddTextTool,
-};
-
-export default toolDef;
+export { AddText };

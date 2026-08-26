@@ -1,0 +1,35 @@
+// src/core/motion/compositions/textareaMotion.ts
+
+const cx = (...classes: (string | boolean | undefined | null)[]) =>
+  classes.filter(Boolean).join(' ');
+
+const textareaMotion = {
+  /** Container classes – applied directly to the <textarea> – same as input container */
+  container: (error?: boolean, className?: string) =>
+    cx(
+      'flex items-center gap-2 rounded-xl border bg-white dark:bg-gray-800 px-3 py-2.5',
+      'transition-all duration-200 ease-out',
+      'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20', // focus (not focus-within)
+      'hover:border-gray-400 dark:hover:border-gray-500',
+      error
+        ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
+        : 'border-gray-300 dark:border-gray-600',
+      className
+    ),
+
+  /** Field classes – same as input field */
+  field: (className?: string) =>
+    cx(
+      'w-full bg-transparent outline-none text-base text-gray-900 dark:text-white',
+      'placeholder:text-gray-400 dark:placeholder:text-gray-500',
+      'disabled:cursor-not-allowed disabled:text-gray-400 dark:disabled:text-gray-500',
+      'min-w-0',
+      'selection:bg-blue-500/30 dark:selection:bg-blue-400/30',
+      className
+    ),
+
+  /** Textarea‑specific: resize and min-height */
+  resize: 'resize-none min-h-[48px]',
+};
+
+export default textareaMotion;

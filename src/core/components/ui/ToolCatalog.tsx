@@ -1,14 +1,19 @@
-// src/core/components/ui/ToolCatalog.tsx
 import { ToolCard } from './ToolCard';
 import { Grid } from './Grid';
-import type { Tool } from '@/core/registry/toolRegistry';
+
+interface ToolMeta {
+  id: string;
+  name: string;
+}
 
 interface ToolCatalogProps {
-  tools: Tool[];
+  tools: ToolMeta[];
   variant: 'grid' | 'list';
   loading: boolean;
   currentToolId: string | null;
   onToolSelect?: (toolId: string) => void;
+  onToolHover?: (toolId: string) => void;
+  loadingToolId?: string | null;
 }
 
 const SkeletonCard = () => (
@@ -33,8 +38,9 @@ export function ToolCatalog({
   loading,
   currentToolId,
   onToolSelect,
+  onToolHover,
+  loadingToolId,
 }: ToolCatalogProps) {
-  // 🔥 LOADING STATE
   if (loading) {
     if (variant === 'list') {
       return (
@@ -50,7 +56,6 @@ export function ToolCatalog({
     );
   }
 
-  // 🔥 EMPTY STATE
   if (tools.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -59,7 +64,6 @@ export function ToolCatalog({
     );
   }
 
-  // 🔥 LIST VIEW
   if (variant === 'list') {
     return (
       <div className="space-y-1">
@@ -76,6 +80,8 @@ export function ToolCatalog({
               tool={tool}
               variant="list"
               onToolSelect={onToolSelect}
+              onToolHover={onToolHover}
+              isLoading={loadingToolId === tool.id}
             />
           </div>
         ))}
@@ -83,7 +89,6 @@ export function ToolCatalog({
     );
   }
 
-  // 🔥 GRID VIEW
   return (
     <Grid minCardWidth={200} gap={16} className="pt-6">
       {tools.map((tool) => (
@@ -92,6 +97,8 @@ export function ToolCatalog({
           tool={tool}
           variant="grid"
           onToolSelect={onToolSelect}
+          onToolHover={onToolHover}
+          isLoading={loadingToolId === tool.id}
         />
       ))}
     </Grid>

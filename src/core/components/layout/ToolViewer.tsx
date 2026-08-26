@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getToolRegistry } from '@/core/registry/toolRegistry';
+import { loadTool } from '@/core/registry/toolRegistry';
 import type { Tool } from '@/core/registry/toolRegistry';
 import { useToolStore } from '@/core/store/toolStore';
 
@@ -12,17 +12,23 @@ export function ToolViewer() {
 
   useEffect(() => {
     if (!toolId) {
-      setLoading(false);
+      setTool(null);
       setCurrentTool(null);
+      setLoading(false);
       return;
     }
 
-    getToolRegistry().then((registry) => {
-      const found = registry.find((t) => t.id === toolId);
-      setTool(found || null);
-      setCurrentTool(found || null);
-      setLoading(false);
-    });
+    loadTool(toolId)
+      .then((loadedTool) => {
+        setTool(loadedTool);
+        setCurrentTool(loadedTool);
+        setLoading(false);
+      })
+      .catch(() => {
+        setTool(null);
+        setCurrentTool(null);
+        setLoading(false);
+      });
   }, [toolId, setCurrentTool]);
 
   if (loading) {

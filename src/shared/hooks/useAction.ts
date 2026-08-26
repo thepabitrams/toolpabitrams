@@ -1,8 +1,5 @@
-// src/shared/hooks/useAction.ts
-
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getToolRegistry } from '@/core/registry/toolRegistry';
+import { loadTool } from '@/core/registry/toolRegistry';
 import type { Tool } from '@/core/registry/toolRegistry';
 
 interface UseActionOptions {
@@ -24,7 +21,6 @@ interface UseActionReturn {
   handleMouseMove: (e: React.MouseEvent) => void;
   handleMouseUp: () => void;
   handleMouseLeave: () => void;
-  sheetRef: React.RefObject<HTMLDivElement>;
 }
 
 export const useAction = ({ toolId }: UseActionOptions): UseActionReturn => {
@@ -36,15 +32,16 @@ export const useAction = ({ toolId }: UseActionOptions): UseActionReturn => {
   const currentY = useRef<number | null>(null);
   const velocity = useRef<number>(0);
   const lastMoveTime = useRef<number>(0);
-  const sheetRef = useRef<HTMLDivElement>(null);
 
-  // 获取当前工具信息，用于过滤显示哪些工具可以跳转
   useEffect(() => {
     if (toolId) {
-      getToolRegistry().then((registry) => {
-        const tool = registry.find((t) => t.id === toolId);
-        if (tool) setCurrentTool(tool);
-      });
+      loadTool(toolId)
+        .then((tool) => {
+          if (tool) setCurrentTool(tool);
+        })
+        .catch(() => {
+          setCurrentTool(null);
+        });
     }
   }, [toolId]);
 
@@ -73,13 +70,10 @@ export const useAction = ({ toolId }: UseActionOptions): UseActionReturn => {
   const filter = currentTool
     ? {
         category: currentTool.category,
-        inputType: currentTool.inputType,
+        inputType: currentTool.input || 'single',
       }
     : undefined;
 
-  // ============================================================
-  // 拖拽手势处理 (保持原样)
-  // ============================================================
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
     startY.current = touch.clientY;
@@ -173,7 +167,6 @@ export const useAction = ({ toolId }: UseActionOptions): UseActionReturn => {
     }
   }, [isDragging, dragOffset, close]);
 
-  // 关闭时重置状态
   useEffect(() => {
     if (!isOpen) {
       setDragOffset(0);
@@ -196,6 +189,5 @@ export const useAction = ({ toolId }: UseActionOptions): UseActionReturn => {
     handleMouseMove,
     handleMouseUp,
     handleMouseLeave,
-    sheetRef,
   };
 };

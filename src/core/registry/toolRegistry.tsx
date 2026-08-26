@@ -1,15 +1,14 @@
-// src/core/registry/toolRegistry.ts
 import { ComponentType } from 'react';
 
 export type Category = 'image' | 'pdf' | 'file';
-export type InputType = 'single' | 'multiple'; // Keep this type if you want, or just use string
+export type InputType = 'single' | 'multiple';
 
 export interface Tool {
   id: string;
   name: string;
   description: string;
   category: Category;
-  input: InputType; // 🔥 CHANGED: inputType → input
+  input: InputType;
   component: ComponentType;
 }
 
@@ -20,24 +19,36 @@ export const FallbackComponent: ComponentType = () => (
   </div>
 );
 
-const toolModules = import.meta.glob('../../tools/**/*/index.tsx');
+const toolModules = import.meta.glob('../../tools/**/index.tsx');
+const loaderMap = new Map<string, () => Promise<any>>();
 
-export async function getToolRegistry(): Promise<Tool[]> {
-  const tools: Tool[] = [];
+for (const [path, loader] of Object.entries(toolModules)) {
+  const parts = path.split('/');
+  const toolId = parts[parts.length - 2];
+  loaderMap.set(toolId, loader);
+}
 
-  for (const [path, importFn] of Object.entries(toolModules)) {
-    const module = (await importFn()) as any;
-    const toolDef = module.default || module;
-    if (toolDef?.id && toolDef?.name) {
-      tools.push({
-        id: toolDef.id,
-        name: toolDef.name,
-        description: toolDef.description || 'No description provided',
-        category: toolDef.category || 'file',
-        input: toolDef.input || toolDef.inputType || 'single', // 🔥 FALLBACK: check both just in case
-        component: toolDef.component || FallbackComponent,
-      });
-    }
+export async function loadTool(toolId: string): Promise<Tool> {
+  const loader = loaderMap.get(toolId);
+  if (!loader) {
+    throw new Error(`Tool "${toolId}" not found in loader map.`);
   }
-  return tools;
+  const module = await loader();
+  const toolDef = module.default || module;
+
+  return {
+    id: toolDef.id || toolId,
+    name: toolDef.name || toolId,
+    description: toolDef.description || 'No description provided',
+    category: toolDef.category || 'file',
+    input: toolDef.input || toolDef.inputType || 'single',
+    component: toolDef.component || FallbackComponent,
+  };
+}
+
+export function preloadTool(toolId: string): void {
+  const loader = loaderMap.get(toolId);
+  if (loader) {
+    loader().catch(() => {});
+  }
 }

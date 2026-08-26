@@ -1,4 +1,3 @@
-// src/tools/image/add-text/ATControls.tsx
 import React from 'react';
 import {
   FiMinus,
@@ -8,12 +7,12 @@ import {
 import { Container } from '@/core/components/ui/Container';
 import { Button } from '@/core/components/ui/Button';
 import { IconButton } from '@/core/components/ui/IconButton';
-import { Motion } from '@/core/motion/motion';
-import { inputFieldMotion } from '@/core/motion/compositions/input';
-import { Select } from '@/core/components/ui/Select';  // ✅ reusable Select
-import type { TextConfig } from './ATLogic';
+import { Select } from '@/core/components/ui/Select';
+import { Textarea } from '@/core/components/ui/Textarea';
+import { ColorPicker } from '@/core/components/ui/ColorPicker';
+import type { TextConfig } from './useEditor';
 
-interface ATControlsProps {
+interface ControlsProps {
   config: TextConfig;
   onUpdateText: (content: string) => void;
   onUpdateFontSize: (size: number) => void;
@@ -41,7 +40,7 @@ const FONTS = [
   'Comic Sans MS, cursive',
 ];
 
-export const ATControls: React.FC<ATControlsProps> = ({
+export const Controls: React.FC<ControlsProps> = ({
   config,
   onUpdateText,
   onUpdateFontSize,
@@ -60,28 +59,15 @@ export const ATControls: React.FC<ATControlsProps> = ({
   return (
     <Container className="px-3 py-3 max-w-full overflow-hidden">
       <div className="space-y-3">
-        {/* ─── TEXT INPUT + Style Buttons ────────────────── */}
         <div className="flex items-start gap-2">
-          <Motion
-            preset={inputFieldMotion}
-            as="textarea"
+          <Textarea
             value={config.content}
             onChange={(e) => onUpdateText(e.target.value)}
             placeholder="Type your text here..."
             rows={2}
-            className="
-              flex-1 min-w-[80px] px-3 py-2
-              bg-white dark:bg-gray-800
-              border border-gray-200 dark:border-gray-700
-              rounded-lg
-              text-sm text-gray-900 dark:text-gray-100
-              placeholder:text-gray-400 dark:placeholder:text-gray-500
-              resize-none
-              min-h-[48px]
-            "
+            className="flex-1 min-w-[80px] min-h-[48px]"
           />
 
-          {/* Style Buttons as IconButtons */}
           <div className="flex gap-1 pt-1 flex-shrink-0">
             <IconButton
               variant={config.fontWeight === 'bold' ? 'filled' : 'standard'}
@@ -104,7 +90,6 @@ export const ATControls: React.FC<ATControlsProps> = ({
           </div>
         </div>
 
-        {/* ─── ROW 1: Size | Color | BG Clear ──────────────── */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <div className="flex items-center gap-1 flex-shrink-0">
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
@@ -137,11 +122,10 @@ export const ATControls: React.FC<ATControlsProps> = ({
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Color
             </label>
-            <input
-              type="color"
+            <ColorPicker
               value={config.color}
-              onChange={(e) => onUpdateColor(e.target.value)}
-              className="w-6 h-6 p-0 border-0 rounded-lg cursor-pointer bg-transparent flex-shrink-0"
+              onChange={onUpdateColor}
+              size="sm"
             />
           </div>
 
@@ -151,25 +135,23 @@ export const ATControls: React.FC<ATControlsProps> = ({
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               BG
             </label>
-            <input
-              type="color"
+            <ColorPicker
               value={config.backgroundColor === 'transparent' ? '#ffffff' : config.backgroundColor}
-              onChange={(e) => onUpdateBackgroundColor(e.target.value)}
-              className="w-6 h-6 p-0 border-0 rounded-lg cursor-pointer bg-transparent flex-shrink-0"
+              onChange={onUpdateBackgroundColor}
+              size="sm"
             />
-            <IconButton
-              variant={config.backgroundColor === 'transparent' ? 'standard' : 'filled'}
+            {/* ✅ FIXED LOGIC: Blue when color is SET, White when transparent */}
+            <Button
+              variant={config.backgroundColor !== 'transparent' ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => onUpdateBackgroundColor('transparent')}
-              ariaLabel="Clear background"
-              className="px-1.5 py-0.5 text-xs font-medium rounded whitespace-nowrap"
+              className="h-7 px-2 text-xs font-medium rounded-lg"
             >
-              <span>Clear</span>
-            </IconButton>
+              Clear
+            </Button>
           </div>
         </div>
 
-        {/* ─── ROW 2: Opacity | Font Family ──────────────────── */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <div className="flex items-center gap-1 flex-shrink-0">
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
@@ -198,7 +180,6 @@ export const ATControls: React.FC<ATControlsProps> = ({
 
           <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
 
-          {/* Font Family Group – now using reusable Select */}
           <div className="flex items-center gap-1.5 flex-1 min-w-[100px] max-w-[180px]">
             <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Font
@@ -215,7 +196,6 @@ export const ATControls: React.FC<ATControlsProps> = ({
           </div>
         </div>
 
-        {/* ─── ROW 3: Position (Top/Bottom) ───────────────────── */}
         <div className="flex flex-wrap items-center gap-2">
           <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
             Position
@@ -234,7 +214,6 @@ export const ATControls: React.FC<ATControlsProps> = ({
           </div>
         </div>
 
-        {/* ─── ROW 4: Reset + Apply ───────────────────────────── */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <div className="flex items-center gap-1">
             <IconButton
@@ -253,7 +232,7 @@ export const ATControls: React.FC<ATControlsProps> = ({
             variant="primary"
             onClick={onApply}
             disabled={isExporting || !config.content.trim()}
-            className="px-6 py-1.5 text-sm"
+            className="px-6 py-1.5 text-sm font-medium rounded-lg"
           >
             Apply Text
           </Button>
