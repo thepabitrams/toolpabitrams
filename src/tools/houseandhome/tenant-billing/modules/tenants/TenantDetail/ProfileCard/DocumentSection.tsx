@@ -1,7 +1,7 @@
 // src/tools/houseandhome/tenant-billing/modules/tenants/TenantDetail/ProfileCard/DocumentSection.tsx
 import React, { useState, useRef } from 'react';
 import { Container } from '@/core/components/ui/Container';
-import { Overlay } from '@/core/motion/components/overlay';
+import { Overlay } from '@/core/components/ui/Overlay';
 import { MdAdd, MdDeleteOutline, MdDownload, MdClose as MdCloseIcon, MdDescription } from 'react-icons/md';
 
 interface DocumentSectionProps {

@@ -1,11 +1,10 @@
 // src/shared/components/FileCard.tsx
-
 import React from 'react';
 import { FilePreview } from './FilePreview';
 import { FileDetails } from './FileDetails';
 import { Container } from '@/core/components/ui/Container';
 import { Motion } from '@/core/motion/motion';
-import { removeButtonMotion } from '@/core/motion/compositions/removeButton';
+import { iconButtonMotion } from '@/core/motion/compositions/iconButtonMotion';
 import { MdClose } from 'react-icons/md';
 import type { FileRef } from '@/core/store/fileStore';
 
@@ -63,7 +62,7 @@ export const FileCard: React.FC<FileCardProps> = ({
 
           {isOriginal && onRemove && (
             <Motion
-              preset={removeButtonMotion}
+              preset={iconButtonMotion}
               as="button"
               onClick={handleRemove}
               className={`
@@ -71,10 +70,14 @@ export const FileCard: React.FC<FileCardProps> = ({
                 p-1.5 rounded-full
                 bg-white/90 dark:bg-gray-900/90
                 shadow-sm backdrop-blur-sm
+                hover:bg-red-50 dark:hover:bg-red-950/20
+                active:scale-[0.95]
+                active:duration-150
+                active:ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                group
               `}
               aria-label="Remove file"
             >
-              {/* 👇 ICON NOW TURNS RED ON HOVER! */}
               <MdClose 
                 className="
                   w-4 h-4

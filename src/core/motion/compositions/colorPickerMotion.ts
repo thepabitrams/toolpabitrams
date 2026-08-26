@@ -1,5 +1,4 @@
 // src/core/motion/compositions/colorPickerMotion.ts
-
 const cx = (...classes: (string | boolean | undefined | null)[]) =>
   classes.filter(Boolean).join(' ');
 

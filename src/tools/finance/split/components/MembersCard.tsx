@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { useSplitStore } from '../store/useSplitStore';
 import { Motion } from '@/core/motion/motion';
-import { Stagger } from '@/core/motion/Stagger';
+import { Stagger } from '@/core/motion/core/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { MdGroup } from 'react-icons/md';
 

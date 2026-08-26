@@ -1,6 +1,6 @@
 // src/tools/houseandhome/tenant-billing/modules/tenants/TenantDetail/ProfileCard/PhotoSection.tsx
 import React, { useState, useRef } from 'react';
-import { Overlay } from '@/core/motion/components/overlay';
+import { Overlay } from '@/core/components/ui/Overlay';
 import { MdPhotoCamera, MdDownload, MdClose as MdCloseIcon } from 'react-icons/md';
 import { compression } from '../../../../services/compression';
 

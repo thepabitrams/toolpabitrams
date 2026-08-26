@@ -2,9 +2,9 @@
 import { useState, useCallback } from 'react';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
+import { Input } from '@/core/components/ui/Input';
 import { Motion } from '@/core/motion/motion';
-import { inputFieldMotion } from '@/core/motion/compositions/input';
-import { buttonMotion } from '@/core/motion/compositions/button'; // ✅ Correct import
+import { buttonMotion } from '@/core/motion/compositions/buttonMotion';
 
 export type Unit = 'px' | 'mm' | 'cm' | 'inch';
 
@@ -112,25 +112,23 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
           Dimension Input
         </h3>
 
-        {/* ─── DPI Input ───────────────────────────── */}
+        {/* DPI Input */}
         <div className="flex items-center gap-3 mb-3">
           <label className="text-xs font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">
             DPI
           </label>
-          <Motion
-            preset={inputFieldMotion}
-            as="input"
+          <Input
             type="number"
             value={dpi}
             onChange={handleDpiChange}
             onFocus={handleFocus}
             min="1"
             max="1200"
-            className="flex-1"
+            fullWidth
           />
         </div>
 
-        {/* ─── Unit Buttons ───────────────────────────── */}
+        {/* Unit Buttons */}
         <div className="mb-3">
           <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
             Unit
@@ -139,7 +137,7 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
             {UNITS.map((u) => (
               <Motion
                 key={u}
-                preset={buttonMotion}          // ✅ Using buttonMotion from button.ts
+                preset={buttonMotion}
                 as="button"
                 onClick={() => handleUnitChange(u)}
                 className={`
@@ -157,38 +155,34 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
           </div>
         </div>
 
-        {/* ─── Width & Height Inputs ──────────────────── */}
+        {/* Width & Height Inputs */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Width ({unit})
             </label>
-            <Motion
-              preset={inputFieldMotion}
-              as="input"
+            <Input
               type="number"
               value={widthRaw}
               onChange={handleWidthChange}
               onFocus={handleFocus}
               min="1"
               step="any"
-              className="w-full"
+              fullWidth
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Height ({unit})
             </label>
-            <Motion
-              preset={inputFieldMotion}
-              as="input"
+            <Input
               type="number"
               value={heightRaw}
               onChange={handleHeightChange}
               onFocus={handleFocus}
               min="1"
               step="any"
-              className="w-full"
+              fullWidth
             />
           </div>
         </div>

@@ -1,3 +1,4 @@
+// src/core/motion/compositions/cardMotion.ts
 import { transitionClass } from '../tokens';
 
 export const cardMotion = () => ({

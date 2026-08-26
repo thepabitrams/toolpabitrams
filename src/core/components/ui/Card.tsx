@@ -1,7 +1,7 @@
 // src/core/components/ui/Card.tsx
 import React, { ReactNode, HTMLAttributes } from 'react';
 import { Motion } from '@/core/motion/motion';
-import { cardMotion } from '@/core/motion/compositions/card';
+import { cardMotion } from '@/core/motion/compositions/cardMotion';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;

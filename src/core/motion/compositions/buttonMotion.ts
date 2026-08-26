@@ -1,4 +1,4 @@
-// core/motion/compositions/button.ts
+// src/core/motion/compositions/button.ts
 import { transitionClass } from '../tokens';
 import { pressScale } from '../interactions/press';
 import { focusRing } from '../interactions/focus';

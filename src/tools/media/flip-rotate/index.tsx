@@ -6,7 +6,7 @@ import { FileUpload } from '@/shared/components/FileUpload';
 import { FileCard } from '@/shared/components/FileCard';
 import { ExportPanel } from '@/shared/components/ExportPanel';
 import { Motion } from '@/core/motion/motion';
-import { Stagger } from '@/core/motion/Stagger';
+import { Stagger } from '@/core/motion/core/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { Grid } from '@/core/components/ui/Grid';
 import { FRCard } from './FRCard';

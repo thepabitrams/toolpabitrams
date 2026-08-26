@@ -1,4 +1,4 @@
-// core/motion/compositions/toolCard.ts
+// core/motion/compositions/toolCardMotion.ts
 import { transitionClass, scale } from '../tokens';
 import { hoverScale } from '../interactions/hover';
 import { pressScale } from '../interactions/press';

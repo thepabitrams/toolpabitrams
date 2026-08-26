@@ -1,6 +1,6 @@
 // src/tools/houseandhome/tenant-billing/modules/shared/AddChargeOverlay/index.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Overlay } from '@/core/motion/components/overlay';
+import { Overlay } from '@/core/components/ui/Overlay';
 import { Button } from '@/core/components/ui/Button';
 import { Container } from '@/core/components/ui/Container';
 import { useOwnerStore } from '../../../store/ownerStore';

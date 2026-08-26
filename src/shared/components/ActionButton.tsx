@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/core/components/ui/Button';
 import { ToolHub } from '@/core/components/layout/ToolHub';
 import { useAction } from '@/shared/hooks/useAction';
-import { Overlay } from '@/core/motion/components/overlay';
+import { Overlay } from '@/core/components/ui/Overlay';
 
 interface ActionButtonProps {
   toolId: string;

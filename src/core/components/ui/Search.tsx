@@ -1,7 +1,7 @@
 // src/core/components/ui/Search.tsx
 import { FiSearch } from 'react-icons/fi';
 import { Motion } from '@/core/motion/motion';
-import { searchMotion } from '@/core/motion/compositions/search';
+import { searchMotion } from '@/core/motion/compositions/searchMotion';
 
 interface SearchProps {
   value: string;
@@ -32,9 +32,6 @@ export function Search({
               hover:border-gray-300 dark:hover:border-gray-600
               focus-within:border-blue-500
               focus-within:ring-2 focus-within:ring-blue-500/20
-
-              /* 🔥 SPRING TRANSITION - Applied to container */
-              transition-all duration-200
             `}
           >
             <FiSearch

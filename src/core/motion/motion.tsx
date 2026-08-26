@@ -1,6 +1,6 @@
 // core/motion/motion.tsx
 import React from 'react';
-import { injectKeyframes } from './injection';
+import { injectKeyframes } from './core/injection';
 
 // ---------- Types ----------
 interface Preset {

@@ -3,8 +3,7 @@ import React, { useRef } from 'react';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
 import { Button } from '@/core/components/ui/Button';
-import { Motion } from '@/core/motion/motion';
-import { inputFieldMotion } from '@/core/motion/compositions/input'; // 👈 new import
+import { Input } from '@/core/components/ui/Input';
 
 interface ASCardProps {
   minKB: number;
@@ -53,23 +52,17 @@ export const ASCard: React.FC<ASCardProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Min Size
             </label>
-            <div className="relative">
-              <Motion
-                preset={inputFieldMotion}
-                as="input"
-                type="number"
-                min={1}
-                value={minKB}
-                onChange={(e) => onMinChange(Number(e.target.value))}
-                onFocus={handleFocus}
-                ref={minInputRef}
-                placeholder="Min KB"
-                className="w-full" // base styles come from the motion, we can keep this for overrides
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500 pointer-events-none">
-                KB
-              </span>
-            </div>
+            <Input
+              type="number"
+              min={1}
+              value={minKB}
+              onChange={(e) => onMinChange(Number(e.target.value))}
+              onFocus={handleFocus}
+              ref={minInputRef}
+              placeholder="Min KB"
+              suffix="KB"
+              fullWidth
+            />
           </div>
 
           {/* Max Input */}
@@ -77,34 +70,26 @@ export const ASCard: React.FC<ASCardProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Max Size
             </label>
-            <div className="relative">
-              <Motion
-                preset={inputFieldMotion}
-                as="input"
-                type="number"
-                min={1}
-                value={maxKB}
-                onChange={(e) => onMaxChange(Number(e.target.value))}
-                onFocus={handleFocus}
-                ref={maxInputRef}
-                placeholder="Max KB"
-                className="w-full"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500 pointer-events-none">
-                KB
-              </span>
-            </div>
+            <Input
+              type="number"
+              min={1}
+              value={maxKB}
+              onChange={(e) => onMaxChange(Number(e.target.value))}
+              onFocus={handleFocus}
+              ref={maxInputRef}
+              placeholder="Max KB"
+              suffix="KB"
+              fullWidth
+            />
           </div>
         </div>
 
-        {/* Error message */}
         {minKB >= maxKB && minKB > 0 && maxKB > 0 && (
           <p className="text-sm text-red-500 dark:text-red-400 -mt-2">
             Min must be less than Max
           </p>
         )}
 
-        {/* Process Button */}
         <Button
           onClick={onProcess}
           disabled={!hasFile || isProcessing || minKB >= maxKB}

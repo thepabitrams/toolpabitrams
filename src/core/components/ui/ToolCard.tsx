@@ -4,9 +4,9 @@ import { useToolStore } from '@/core/store/toolStore';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import type { Tool } from '@/core/registry/toolRegistry';
 import { Motion } from '@/core/motion/motion';
-import { toolCardGridMotion, toolCardListMotion } from '@/core/motion/compositions/toolCard';
+import { toolCardGridMotion, toolCardListMotion } from '@/core/motion/compositions/toolCardMotion';
 import { marqueeSwing } from '@/core/motion/presets/marqueeSwing';
-import { injectKeyframes } from '@/core/motion/injection';
+import { injectKeyframes } from '@/core/motion/core/injection';
 
 interface ToolCardProps {
   tool: Tool;
