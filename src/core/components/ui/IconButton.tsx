@@ -1,7 +1,7 @@
 // src/core/components/ui/IconButton.tsx
 import React from 'react';
 import { Motion } from '@/core/motion/motion';
-import { iconButtonMotion } from '@/core/motion/compositions/iconButton';
+import { iconButtonMotion } from '@/core/motion/compositions/iconButtonMotion';
 
 export type IconButtonVariant = 'standard' | 'filled' | 'tonal' | 'outlined';
 export type IconButtonSize = 'xs' | 'sm' | 'md' | 'lg';

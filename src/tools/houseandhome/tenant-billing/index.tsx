@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Tool } from '@/core/registry/toolRegistry';
 import { Grid } from '@/core/components/ui/Grid';
 import { Motion } from '@/core/motion/motion';
-import { Stagger } from '@/core/motion/Stagger';
+import { Stagger } from '@/core/motion/core/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { Container } from '@/core/components/ui/Container';
 import { useOwnerStore } from './store/ownerStore';

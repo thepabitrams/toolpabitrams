@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Motion } from '../motion';
-import { zoomIn } from '../presets/zoomIn';
-import { zoomOut } from '../presets/zoomOut';
+import { Motion } from '../../motion/motion';
+import { zoomIn } from '../../motion/presets/zoomIn';
+import { zoomOut } from '../../motion/presets/zoomOut';
 import { FiX } from 'react-icons/fi';
 
 interface OverlayProps {

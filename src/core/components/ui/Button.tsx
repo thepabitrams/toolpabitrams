@@ -1,7 +1,7 @@
 // src/core/components/ui/Button.tsx
 import React, { ReactNode, ButtonHTMLAttributes } from 'react';
 import { Motion } from '@/core/motion/motion';
-import { buttonMotion } from '@/core/motion/compositions/button';
+import { buttonMotion } from '@/core/motion/compositions/buttonMotion';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 

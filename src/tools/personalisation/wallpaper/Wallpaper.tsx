@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Motion } from '@/core/motion/motion';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { Grid } from '@/core/components/ui/Grid';
-import { Stagger } from '@/core/motion/Stagger';
+import { Stagger } from '@/core/motion/core/Stagger';
 import { useFileStore } from '@/core/store/fileStore';
 import { FileCard } from '@/shared/components/FileCard';
 import { ExportPanel } from '@/shared/components/ExportPanel';

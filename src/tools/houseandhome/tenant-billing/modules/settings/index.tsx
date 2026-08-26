@@ -1,6 +1,6 @@
 // modules/settings/index.tsx
 import React, { useRef, useState, useEffect } from 'react';
-import { Overlay } from '@/core/motion/components/overlay';
+import { Overlay } from '@/core/components/ui/Overlay';
 import { useUIStore } from '../../store/uiStore';
 import { backup } from '../../services/backup';
 import { storage } from '../../services/storage';

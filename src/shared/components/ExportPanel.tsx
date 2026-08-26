@@ -5,8 +5,7 @@ import { ActionButton } from '@/shared/components/ActionButton';
 import { useFileStore } from '@/core/store/fileStore';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
-import { Motion } from '@/core/motion/motion';
-import { inputFieldMotion } from '@/core/motion/compositions/input'; // 👈 new unified composition
+import { Input } from '@/core/components/ui/Input';
 import type { FileRef } from '@/core/store/fileStore';
 
 interface ExportPanelProps {
@@ -87,7 +86,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
       await onClear();
     } catch {
-      // Silent fail - user will see nothing happened
+      // Silent fail
     } finally {
       setIsDownloading(false);
     }
@@ -112,23 +111,15 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         </h3>
 
         <div className="mb-3">
-          <div className="relative">
-            <Motion
-              preset={inputFieldMotion}       // 👈 now using the unified composition
-              as="input"
-              type="text"
-              value={fileName}
-              onChange={(e) => setFileName(e.target.value)}
-              placeholder="Enter file name..."
-              disabled={isDownloading}
-              className="w-full"
-            />
-            {fileExt && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500 font-medium pointer-events-none">
-                .{fileExt}
-              </span>
-            )}
-          </div>
+          <Input
+            type="text"
+            value={fileName}
+            onChange={(e) => setFileName(e.target.value)}
+            placeholder="Enter file name..."
+            disabled={isDownloading}
+            suffix={fileExt ? `.${fileExt}` : undefined}
+            fullWidth
+          />
         </div>
 
         <div className="border-t border-gray-200/60 dark:border-gray-700/60 my-2" />

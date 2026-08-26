@@ -7,7 +7,7 @@ import { Container } from '@/core/components/ui/Container';
 import { FiMenu, FiX, FiSun, FiMoon } from 'react-icons/fi';
 import { useThemeStore } from '@/core/store/themeStore';
 import { Motion } from '@/core/motion/motion';
-import { drawerMotion } from '@/core/motion/compositions/drawer';
+import { drawerMotion } from '@/core/motion/compositions/drawerMotion';
 
 interface HeaderProps {
   variant: 'grid' | 'list';
