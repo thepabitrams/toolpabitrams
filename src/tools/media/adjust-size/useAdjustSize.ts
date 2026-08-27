@@ -2,15 +2,8 @@
 import { useState, useCallback } from 'react';
 import { extractImageMetadata } from '@/entities/image/services/readMetadata';
 import { injectDPI } from './utils/dpi';
-import {
-  binarySearchCompress,
-  padding,
-  posterize,
-  contrastReduce,
-  brightnessAdjust,
-  gaussianBlur,
-  chromaSubsampling,
-} from './strategies';
+import { binarySearchCompress, padding } from './strategies';
+import { compressProgressive } from './compression';
 
 export interface ProcessResult {
   blob: Blob;
@@ -53,37 +46,14 @@ export function useAdjustSize() {
           }
 
           if (compressed.size / 1024 > maxKB) {
-            const img = await loadImage(compressed);
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d', { alpha: true })!;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-
-            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-            if (isLossyFormat && !hasAlpha) {
-              imageData = chromaSubsampling(imageData, '4:2:0');
-            }
-
-            imageData = posterize(imageData, 24);
-            imageData = brightnessAdjust(imageData, 10);
-            imageData = contrastReduce(imageData, 0.75);
-
-            if (!hasAlpha) {
-              imageData = gaussianBlur(imageData, 0.8);
-            }
-
-            ctx.putImageData(imageData, 0, 0);
-
-            const outputFormat = originalFormat;
-            const quality = 0.8;
-
-            compressed = await new Promise<Blob>((resolve) =>
-              canvas.toBlob((b) => resolve(b!), outputFormat, quality)
+            compressed = await compressProgressive(
+              compressed,
+              maxKB,
+              originalFormat,
+              hasAlpha,
+              isLossyFormat,
+              onProgress
             );
-            onProgress?.({ strategy: 'aggressivePipeline', sizeKB: compressed.size / 1024 });
           }
 
           if (compressed.size / 1024 < minKB) {
@@ -112,7 +82,7 @@ export function useAdjustSize() {
           maxKB,
           isWithinRange: finalSizeKB >= minKB && finalSizeKB <= maxKB,
           smallestPossible: finalSizeKB,
-          error: undefined,
+          error: finalSizeKB > maxKB ? `Cannot compress below ${maxKB}KB. Smallest: ${finalSizeKB.toFixed(1)}KB.` : undefined,
           outputFormat: originalFormat,
         };
       } catch (err) {
@@ -173,20 +143,4 @@ async function detectFormatAndAlpha(file: File): Promise<{ detectedFormat: strin
   }
 
   return { detectedFormat: 'image/png', hasAlpha: true };
-}
-
-function loadImage(blob: Blob): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(blob);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-    img.src = url;
-  });
 }
