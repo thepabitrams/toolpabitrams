@@ -1,21 +1,25 @@
-import React, { useState, useCallback } from 'react';
+// src/tools/image/adjust-size/AdjustSize.tsx
+import { useState, useCallback } from 'react';
 import { useFileStore } from '@/core/store/fileStore';
 import { FileUpload } from '@/shared/components/FileUpload';
 import { FileCard } from '@/shared/components/FileCard';
-import { ExportPanel } from '@/shared/components/ExportPanel';
 import { Motion } from '@/core/motion/motion';
 import { Stagger } from '@/core/motion/core/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
+import { ExportPanel } from '@/shared/components/ExportPanel';
 import { Grid } from '@/core/components/ui/Grid';
-import { Editor } from './Editor';
+import { Controls } from './Controls'; // ✅ RENAMED IMPORT
+import { useAdjustSize } from './useAdjustSize'; // ✅ RENAMED IMPORT
+
 import { IMAGE_CONFIG } from '@/entities/image/services/config';
 
-interface AddTextProps {
+interface AdjustSizeToolProps {
+  category: string;
   toolId: string;
 }
 
-function AddText({ toolId }: AddTextProps) {
-  const { list, upload, save, clear, promote, remove } = useFileStore();
+export function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
+  const { list, upload, save, clear, promote, readFile, remove } = useFileStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const originalFiles = list('original');
@@ -23,6 +27,11 @@ function AddText({ toolId }: AddTextProps) {
 
   const processedFiles = list('process');
   const latestProcessed = processedFiles.length > 0 ? processedFiles[processedFiles.length - 1] : null;
+
+  const [minKB, setMinKB] = useState(50);
+  const [maxKB, setMaxKB] = useState(200);
+
+  const { process, isProcessing } = useAdjustSize(); // ✅ RENAMED HOOK
 
   const handleUpload = useCallback(
     async (files: File[]) => {
@@ -44,25 +53,44 @@ function AddText({ toolId }: AddTextProps) {
     }
   }, [currentFile, clear]);
 
-  const handleProcess = useCallback(
-    async (blob: Blob) => {
-      setIsLoading(true);
-      try {
-        const ext = blob.type.split('/')[1] || 'jpg';
-        const resultFile = new File(
-          [blob],
-          `text-added.${ext}`,
-          { type: blob.type }
-        );
-        await save([resultFile]);
-      } catch (error) {
-        alert(`Processing failed: ${error instanceof Error ? error.message : String(error)}`);
-      } finally {
-        setIsLoading(false);
+  const handleProcess = useCallback(async () => {
+    if (!currentFile) return;
+    if (minKB >= maxKB) {
+      alert('Min must be less than Max.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const file = await readFile(currentFile.storageKey);
+      if (!file) throw new Error('Failed to read file');
+
+      const result = await process(file, minKB, maxKB);
+
+      if (!result || !result.blob) {
+        throw new Error('Processing failed: No blob returned');
       }
-    },
-    [save]
-  );
+
+      if (!result.isWithinRange && result.error) {
+        alert(`⚠️ ${result.error}`);
+      }
+
+      const blobType = result.blob.type || 'image/jpeg';
+      const ext = blobType.split('/')[1] || 'jpg';
+
+      const resultFile = new File(
+        [result.blob],
+        `adjusted-${minKB}-${maxKB}KB.${ext}`,
+        { type: blobType }
+      );
+      await save([resultFile]);
+    } catch (error) {
+      alert(`Processing failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentFile, minKB, maxKB, process, save, readFile]);
 
   const handleAction = useCallback(
     async (selectedToolId: string, variant: 'single' | 'multiple') => {
@@ -71,6 +99,7 @@ function AddText({ toolId }: AddTextProps) {
         return;
       }
 
+      const processedFiles = list('process');
       if (processedFiles.length === 0) {
         alert('No processed files to promote');
         return;
@@ -112,7 +141,7 @@ function AddText({ toolId }: AddTextProps) {
 
       window.location.href = `/${selectedToolId}`;
     },
-    [processedFiles, promote, remove]
+    [list, promote, remove]
   );
 
   const hasFile = !!currentFile;
@@ -157,11 +186,16 @@ function AddText({ toolId }: AddTextProps) {
               delay={100}
               style={{ opacity: 0, transform: 'scale(0.5)' }}
             >
-              <Editor
-                file={currentFile}
+              <Controls // ✅ RENAMED FROM ASCard
+                minKB={minKB}
+                maxKB={maxKB}
+                onMinChange={setMinKB}
+                onMaxChange={setMaxKB}
                 onProcess={handleProcess}
+                isProcessing={isProcessing}
+                hasFile={hasFile}
                 minWidth={360}
-                minHeight={350}
+                minHeight={240}
                 padding={0}
               />
             </Motion>
@@ -196,7 +230,7 @@ function AddText({ toolId }: AddTextProps) {
               <ExportPanel
                 file={latestProcessed}
                 variant="single"
-                initialFileName="text-added"
+                initialFileName={`adjusted-${minKB}-${maxKB}KB`}
                 onClear={clear}
                 toolId={toolId}
                 onToolSelect={handleAction}
@@ -211,5 +245,3 @@ function AddText({ toolId }: AddTextProps) {
     </div>
   );
 }
-
-export { AddText };

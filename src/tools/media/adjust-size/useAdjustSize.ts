@@ -1,3 +1,4 @@
+// src/tools/image/adjust-size/useAdjustSize.ts
 import { useState, useCallback } from 'react';
 import { extractImageMetadata } from '@/entities/image/services/readMetadata';
 import { injectImageMetadata } from '@/entities/image/services/writeMetadata';
@@ -20,7 +21,7 @@ export interface ProcessResult {
   error?: string;
 }
 
-export function useASLogic() {
+export function useAdjustSize() { // ✅ RENAMED FUNCTION
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState<ProgressData | null>(null);
 

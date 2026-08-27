@@ -10,7 +10,7 @@ import { IconButton } from '@/core/components/ui/IconButton';
 import { Select } from '@/core/components/ui/Select';
 import { Textarea } from '@/core/components/ui/Textarea';
 import { ColorPicker } from '@/core/components/ui/ColorPicker';
-import type { TextConfig } from './useEditor';
+import type { TextConfig } from './useAddText'; // ✅ UPDATED IMPORT
 
 interface ControlsProps {
   config: TextConfig;
@@ -140,7 +140,6 @@ export const Controls: React.FC<ControlsProps> = ({
               onChange={onUpdateBackgroundColor}
               size="sm"
             />
-            {/* ✅ FIXED LOGIC: Blue when color is SET, White when transparent */}
             <Button
               variant={config.backgroundColor !== 'transparent' ? 'primary' : 'secondary'}
               size="sm"

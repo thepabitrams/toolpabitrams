@@ -1,11 +1,11 @@
-// src/tools/image/adjust-size/ASCard.tsx
+// src/tools/image/adjust-size/Controls.tsx
 import React, { useRef } from 'react';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
 import { Button } from '@/core/components/ui/Button';
 import { Input } from '@/core/components/ui/Input';
 
-interface ASCardProps {
+interface ControlsProps { // ✅ RENAMED INTERFACE
   minKB: number;
   maxKB: number;
   onMinChange: (value: number) => void;
@@ -19,7 +19,7 @@ interface ASCardProps {
   padding?: number;
 }
 
-export const ASCard: React.FC<ASCardProps> = ({
+export const Controls: React.FC<ControlsProps> = ({ // ✅ RENAMED COMPONENT
   minKB,
   maxKB,
   onMinChange,

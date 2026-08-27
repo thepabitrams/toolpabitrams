@@ -14,7 +14,7 @@ export interface TextConfig {
   position: 'top' | 'bottom';
 }
 
-export interface EditorReturn {
+export interface AddTextReturn { // ✅ UPDATED INTERFACE NAME
   config: TextConfig;
   updateText: (content: string) => void;
   updateFontSize: (size: number) => void;
@@ -75,7 +75,7 @@ const defaultConfig: TextConfig = {
   position: 'bottom',
 };
 
-export function useEditor(): EditorReturn {
+export function useAddText(): AddTextReturn { // ✅ RENAMED FUNCTION
   const [config, setConfig] = useState<TextConfig>(defaultConfig);
 
   const updateText = useCallback((content: string) => {

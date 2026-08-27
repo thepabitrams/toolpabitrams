@@ -3,7 +3,7 @@ import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import { useFileStore } from '@/core/store/fileStore';
 import { Controls } from './Controls';
-import { useEditor } from './useEditor';
+import { useAddText } from './useAddText'; // ✅ UPDATED IMPORT
 import type { FileRef } from '@/core/store/fileStore';
 
 interface EditorProps {
@@ -42,7 +42,7 @@ export const Editor: React.FC<EditorProps> = ({
     reset,
     hasChanges,
     processImage,
-  } = useEditor();
+  } = useAddText(); // ✅ UPDATED HOOK NAME
 
   useEffect(() => {
     let isMounted = true;
