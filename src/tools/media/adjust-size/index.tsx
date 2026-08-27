@@ -1,6 +1,6 @@
 // src/tools/image/adjust-size/index.tsx
 import { Tool } from '@/core/registry/toolRegistry';
-import { AdjustSizeTool } from './AdjustSize'; // ✅ IMPORT FROM NEW FILE
+import { AdjustSizeTool } from './AdjustSize';
 
 const toolDef: Tool = {
   id: 'adjust-size',

@@ -5,7 +5,7 @@ import { Card } from '@/core/components/ui/Card';
 import { Button } from '@/core/components/ui/Button';
 import { Input } from '@/core/components/ui/Input';
 
-interface ControlsProps { // ✅ RENAMED INTERFACE
+interface ControlsProps {
   minKB: number;
   maxKB: number;
   onMinChange: (value: number) => void;
@@ -19,7 +19,7 @@ interface ControlsProps { // ✅ RENAMED INTERFACE
   padding?: number;
 }
 
-export const Controls: React.FC<ControlsProps> = ({ // ✅ RENAMED COMPONENT
+export const Controls: React.FC<ControlsProps> = ({
   minKB,
   maxKB,
   onMinChange,
@@ -47,7 +47,6 @@ export const Controls: React.FC<ControlsProps> = ({ // ✅ RENAMED COMPONENT
         </h3>
 
         <div className="grid grid-cols-2 gap-4">
-          {/* Min Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Min Size
@@ -65,7 +64,6 @@ export const Controls: React.FC<ControlsProps> = ({ // ✅ RENAMED COMPONENT
             />
           </div>
 
-          {/* Max Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Max Size

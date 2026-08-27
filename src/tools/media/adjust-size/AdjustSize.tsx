@@ -8,9 +8,8 @@ import { Stagger } from '@/core/motion/core/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { ExportPanel } from '@/shared/components/ExportPanel';
 import { Grid } from '@/core/components/ui/Grid';
-import { Controls } from './Controls'; // ✅ RENAMED IMPORT
-import { useAdjustSize } from './useAdjustSize'; // ✅ RENAMED IMPORT
-
+import { Controls } from './Controls';
+import { useAdjustSize } from './useAdjustSize';
 import { IMAGE_CONFIG } from '@/entities/image/services/config';
 
 interface AdjustSizeToolProps {
@@ -31,7 +30,7 @@ export function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
   const [minKB, setMinKB] = useState(50);
   const [maxKB, setMaxKB] = useState(200);
 
-  const { process, isProcessing } = useAdjustSize(); // ✅ RENAMED HOOK
+  const { process, isProcessing } = useAdjustSize();
 
   const handleUpload = useCallback(
     async (files: File[]) => {
@@ -76,13 +75,13 @@ export function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
         alert(`⚠️ ${result.error}`);
       }
 
-      const blobType = result.blob.type || 'image/jpeg';
-      const ext = blobType.split('/')[1] || 'jpg';
+      const outputFormat = result.outputFormat || 'image/png';
+      const ext = outputFormat.split('/')[1] || 'png';
 
       const resultFile = new File(
         [result.blob],
         `adjusted-${minKB}-${maxKB}KB.${ext}`,
-        { type: blobType }
+        { type: outputFormat }
       );
       await save([resultFile]);
     } catch (error) {
@@ -186,7 +185,7 @@ export function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
               delay={100}
               style={{ opacity: 0, transform: 'scale(0.5)' }}
             >
-              <Controls // ✅ RENAMED FROM ASCard
+              <Controls
                 minKB={minKB}
                 maxKB={maxKB}
                 onMinChange={setMinKB}
