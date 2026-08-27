@@ -1,40 +1,18 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- ========================================== -->
-    <!--  1. BASIC META TAGS                        -->
-    <!-- ========================================== -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- ========================================== -->
-    <!--  2. PWA / APP MANIFEST                     -->
-    <!-- ========================================== -->
     <link rel="manifest" href="/manifest.webmanifest" />
-
-    <!-- ========================================== -->
-    <!--  3. THEME COLOR (for mobile browsers)      -->
-    <!-- ========================================== -->
     <meta name="theme-color" content="#0f172a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-    <!-- ========================================== -->
-    <!--  4. FAVICON                                -->
-    <!-- ========================================== -->
+    <meta name="mobile-web-app-capable" content="yes" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
-
-    <!-- ========================================== -->
-    <!--  5. PAGE TITLE                            -->
-    <!-- ========================================== -->
     <title>ToolPabitraMS — Your Privacy-First Toolkit</title>
-
-    <!-- ========================================== -->
-    <!--  6. SEO / OPEN GRAPH                      -->
-    <!-- ========================================== -->
     <meta name="description" content="A personal, client-side utility toolkit built with React, TypeScript, and Vite. All processing happens locally in your browser." />
     <meta property="og:title" content="ToolPabitraMS" />
     <meta property="og:description" content="Privacy-first browser tools. No data ever leaves your device." />
@@ -42,14 +20,7 @@
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
-    <!-- ========================================== -->
-    <!--  7. REACT ROOT                            -->
-    <!-- ========================================== -->
     <div id="root"></div>
-
-    <!-- ========================================== -->
-    <!--  8. MAIN APP BUNDLE                      -->
-    <!-- ========================================== -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
