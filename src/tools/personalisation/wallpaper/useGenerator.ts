@@ -1,3 +1,8 @@
+// src/tools/personalisation/wallpaper/useGenerator.ts
+
+import { exportCanvas } from '@/lib/browser';
+import { writeDpi } from '@/entities/image/metadata';
+
 export function useGenerator() {
   const generateWallpaper = async (
     color: string,
@@ -15,14 +20,13 @@ export function useGenerator() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const mimeType = `image/${fileType}`;
-    const quality = 1.0;
+    const quality = fileType === 'png' ? undefined : 0.95;
 
-    return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Canvas to Blob conversion failed'));
-      }, mimeType, quality);
-    });
+    const blob = await exportCanvas(canvas, mimeType, quality);
+
+    const ext = fileType === 'jpeg' ? 'jpg' : fileType;
+    const file = new File([blob], `wallpaper.${ext}`, { type: mimeType });
+    return writeDpi(file, 96);
   };
 
   return { generateWallpaper };
