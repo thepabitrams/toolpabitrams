@@ -23,11 +23,22 @@ export async function readDpi(
           dpi = Math.round((xRes + yRes) / 2);
         }
       }
+
+      if (!dpi && exif.PixelsPerUnitX && exif.PixelsPerUnitY) {
+        const ppuX = parseFloat(exif.PixelsPerUnitX);
+        const ppuY = parseFloat(exif.PixelsPerUnitY);
+        if (!isNaN(ppuX) && !isNaN(ppuY)) {
+          const avgPpu = (ppuX + ppuY) / 2;
+          dpi = Math.round(avgPpu * 0.0254);
+        }
+      }
+
       if (exif.ResolutionUnit) {
         const resUnit = parseInt(exif.ResolutionUnit, 10);
         if (resUnit === 2) unit = 'inch';
         else if (resUnit === 3) unit = 'cm';
       }
+
       return { dpi, unit };
     }
   } catch {}

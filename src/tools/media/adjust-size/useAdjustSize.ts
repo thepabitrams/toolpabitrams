@@ -24,7 +24,6 @@ export function useAdjustSize() {
     async (file: File, minKB: number, maxKB: number, onProgress?: (data: any) => void) => {
       setIsProcessing(true);
       try {
-        // ─── READ METADATA ────────────────────────────────
         const [dims, dpiResult] = await Promise.all([
           readDimensions(file),
           readDpi(file),
@@ -68,15 +67,11 @@ export function useAdjustSize() {
           resultBlob = compressed;
         }
 
+        // ─── FIX: Write DPI for ALL formats ────────────────
         const finalFormat = resultBlob.type || originalFormat;
-        let finalBlob: Blob;
-
-        if (finalFormat === 'image/jpeg' || finalFormat === 'image/jpg') {
-          const finalFile = new File([resultBlob], 'output.jpg', { type: finalFormat });
-          finalBlob = await writeDpi(finalFile, dpi);
-        } else {
-          finalBlob = resultBlob;
-        }
+        const ext = finalFormat.split('/')[1] || 'png';
+        const finalFile = new File([resultBlob], `output.${ext}`, { type: finalFormat });
+        const finalBlob = await writeDpi(finalFile, dpi);
 
         const finalSizeKB = finalBlob.size / 1024;
 
