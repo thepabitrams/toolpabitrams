@@ -1,10 +1,10 @@
-// src/tools/image/form-crop/useFCCrop.ts
+// src/tools/image/precision-crop/usePrecisionCrop.ts
 import { useState, useCallback } from "react";
 
 const MAX_ZOOM = 5;
 const ZOOM_STEP = 0.1;
 
-export function useFCCrop() {
+export function usePrecisionCrop() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
 

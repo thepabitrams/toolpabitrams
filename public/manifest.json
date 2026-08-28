@@ -42,12 +42,6 @@
     "category": "image"
   },
   {
-    "id": "form-crop",
-    "name": "Form Crop",
-    "description": "Crop images with precision",
-    "category": "image"
-  },
-  {
     "id": "image-filters",
     "name": "Image Filters",
     "description": "Apply professional filters to your images",
@@ -63,6 +57,12 @@
     "id": "merge-images",
     "name": "Merge Images",
     "description": "Combine multiple images into one",
+    "category": "image"
+  },
+  {
+    "id": "precision-crop",
+    "name": "Precision Crop",
+    "description": "Crop images with precision",
     "category": "image"
   },
   {

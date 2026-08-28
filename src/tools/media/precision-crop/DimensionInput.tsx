@@ -1,4 +1,4 @@
-// src/tools/image/form-crop/FCDimensionInput.tsx
+// src/tools/image/precision-crop/DimensionInput.tsx
 import { useState, useCallback } from 'react';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
@@ -10,7 +10,7 @@ export type Unit = 'px' | 'mm' | 'cm' | 'inch';
 
 const UNITS: Unit[] = ['px', 'mm', 'cm', 'inch'];
 
-interface FCDimensionInputProps {
+interface DimensionInputProps {
   initialWidth?: number;
   initialHeight?: number;
   onSizeChange?: (
@@ -37,7 +37,7 @@ const toPixels = (value: number, fromUnit: Unit, dpi: number): number => {
   }
 };
 
-export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
+export const DimensionInput: React.FC<DimensionInputProps> = ({
   initialWidth = 1,
   initialHeight = 1,
   onSizeChange,
@@ -112,7 +112,6 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
           Dimension Input
         </h3>
 
-        {/* DPI Input */}
         <div className="flex items-center gap-3 mb-3">
           <label className="text-xs font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">
             DPI
@@ -128,7 +127,6 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
           />
         </div>
 
-        {/* Unit Buttons */}
         <div className="mb-3">
           <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
             Unit
@@ -155,7 +153,6 @@ export const FCDimensionInput: React.FC<FCDimensionInputProps> = ({
           </div>
         </div>
 
-        {/* Width & Height Inputs */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">

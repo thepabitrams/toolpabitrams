@@ -1,18 +1,17 @@
-// src/tools/image/form-crop/FCCropper.tsx
+// src/tools/image/precision-crop/Cropper.tsx
 import React, { useState, useCallback, useEffect } from "react";
-import Cropper from "react-easy-crop";
+import ReactEasyCrop from "react-easy-crop";
 import type { Area } from "react-easy-crop/types";
-import { useFCCrop } from "./useFCCrop";
-import { FCCropControls } from "./FCCropControls";
+import { usePrecisionCrop } from "./usePrecisionCrop";
+import { CropControls } from "./Controls";
 import { useFileStore } from '@/core/store/fileStore';
 import { Container } from '@/core/components/ui/Container';
 import { Card } from '@/core/components/ui/Card';
 import type { FileRef } from '@/core/store/fileStore';
-import { cropImage } from '@/entities/image/services/canvas';
-import { resizeImage } from '@/entities/image/services/resize';
-import { injectImageMetadata } from '@/entities/image/services/writeMetadata';
+import { loadImage, exportCanvas, prepareCanvas } from '@/lib/browser';
+import { writeDpi } from '@/entities/image';
 
-interface FCCropperProps {
+interface CropperProps {
   file: FileRef | null;
   aspectRatio: number;
   targetWidthPx: number;
@@ -25,7 +24,7 @@ interface FCCropperProps {
   padding?: number;
 }
 
-export const FCCropper: React.FC<FCCropperProps> = ({
+export const Cropper: React.FC<CropperProps> = ({
   file,
   aspectRatio,
   targetWidthPx,
@@ -37,12 +36,10 @@ export const FCCropper: React.FC<FCCropperProps> = ({
   minHeight = 200,
   padding = 0,
 }) => {
-  // 🗑️ REMOVED: const [isProcessing, setIsProcessing] = useState(false);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const { readFile } = useFileStore();
 
-  // 🚫 rotation is completely removed from the hook
   const {
     crop,
     zoom,
@@ -53,9 +50,8 @@ export const FCCropper: React.FC<FCCropperProps> = ({
     reset,
     isZoomMin,
     isZoomMax,
-  } = useFCCrop();
+  } = usePrecisionCrop();
 
-  // ─── Load image from OPFS using storageKey ──────────────────
   useEffect(() => {
     let isMounted = true;
     let objectUrl: string | null = null;
@@ -73,7 +69,6 @@ export const FCCropper: React.FC<FCCropperProps> = ({
           setImageUrl(objectUrl);
         }
       } catch {
-        // silent fail – caller handles errors
       }
     };
 
@@ -93,22 +88,55 @@ export const FCCropper: React.FC<FCCropperProps> = ({
 
   const handleCrop = useCallback(async () => {
     if (!file || !croppedAreaPixels || !imageUrl) return;
-    // 🗑️ REMOVED: setIsProcessing(true);
     try {
       const originalFile = await readFile(file.storageKey);
       if (!originalFile) throw new Error("Failed to read file");
-      // ✅ rotation always 0
-      const croppedBlob = await cropImage(originalFile, croppedAreaPixels, 0);
-      const resizedBlob = await resizeImage(croppedBlob, targetWidthPx, targetHeightPx);
-      const resizedFile = new File([resizedBlob], file.name, { type: resizedBlob.type });
-      const finalBlob = await injectImageMetadata(resizedFile, inputDpi);
-      const extension = finalBlob.type.split('/')[1] || 'jpg';
-      const newName = file.name.replace(/\.[^.]+$/, '') + `_cropped_${targetWidthPx}x${targetHeightPx}.${extension}`;
+
+      const image = await loadImage(originalFile);
+
+      const requestedMimeType = originalFile.type || 'image/png';
+      const supportsAlpha = requestedMimeType !== 'image/jpeg' && requestedMimeType !== 'image/bmp';
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetWidthPx;
+      canvas.height = targetHeightPx;
+      const ctx = prepareCanvas(canvas, supportsAlpha);
+
+      const { x, y, width, height } = croppedAreaPixels;
+      ctx.imageSmoothingEnabled = true;
+      if ('imageSmoothingQuality' in ctx) {
+        ctx.imageSmoothingQuality = 'high';
+      }
+      ctx.drawImage(
+        image,
+        x, y, width, height,
+        0, 0, targetWidthPx, targetHeightPx
+      );
+
+      const quality = (requestedMimeType === 'image/jpeg' || requestedMimeType === 'image/webp') ? 0.92 : undefined;
+      let blob = await exportCanvas(canvas, requestedMimeType, quality);
+
+      const actualMimeType = blob.type || requestedMimeType;
+
+      if (actualMimeType !== requestedMimeType) {
+        console.warn(
+          `Browser exported as "${actualMimeType}" instead of "${requestedMimeType}". ` +
+          `Using actual type for the output.`
+        );
+      }
+
+      const finalMimeType = actualMimeType;
+
+      const fileObj = new File([blob], file.name, { type: finalMimeType });
+      const finalBlob = await writeDpi(fileObj, inputDpi);
+
+      const extension = finalMimeType.split('/')[1] || 'jpg';
+      const baseName = file.name.replace(/\.[^.]+$/, '');
+      const newName = `${baseName}_cropped_${targetWidthPx}x${targetHeightPx}.${extension}`;
+
       await onCrop(finalBlob, newName);
-    } catch {
-      // silent
-    } finally {
-      // 🗑️ REMOVED: setIsProcessing(false);
+    } catch (err) {
+      console.error('Crop error:', err);
     }
   }, [file, croppedAreaPixels, targetWidthPx, targetHeightPx, inputDpi, onCrop, imageUrl, readFile]);
 
@@ -125,19 +153,18 @@ export const FCCropper: React.FC<FCCropperProps> = ({
   return (
     <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>
       <Card className="overflow-hidden p-0">
-        {/* 🖐️ touch-action: none prevents browser pinch-zoom from interfering */}
         <div
           className="relative w-full aspect-square min-h-[300px] sm:min-h-[400px] bg-gray-100 dark:bg-gray-700"
           style={{ touchAction: 'none' }}
         >
-          <Cropper
+          <ReactEasyCrop
             image={imageUrl}
             crop={crop}
             zoom={zoom}
-            rotation={0}                         // 🚫 forced 0
+            rotation={0}
             aspect={aspectRatio}
             minZoom={1}
-            maxZoom={5}                          // ✅ 500% zoom
+            maxZoom={5}
             restrictPosition={true}
             zoomWithScroll={true}
             onCropChange={setCrop}
@@ -158,7 +185,7 @@ export const FCCropper: React.FC<FCCropperProps> = ({
           />
         </div>
 
-        <FCCropControls
+        <CropControls
           zoom={zoom}
           isZoomMin={isZoomMin}
           isZoomMax={isZoomMax}
@@ -166,7 +193,6 @@ export const FCCropper: React.FC<FCCropperProps> = ({
           onZoomOut={zoomOut}
           onReset={reset}
           onCrop={handleCrop}
-          // 🗑️ REMOVED: isProcessing={isProcessing}
         />
       </Card>
     </Container>

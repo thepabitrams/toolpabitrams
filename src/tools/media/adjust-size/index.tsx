@@ -1,6 +1,6 @@
 // src/tools/image/adjust-size/index.tsx
 import { Tool } from '@/core/registry/toolRegistry';
-import { AdjustSizeTool } from './AdjustSize';
+import { AdjustSize } from './AdjustSize';
 
 const toolDef: Tool = {
   id: 'adjust-size',
@@ -8,7 +8,7 @@ const toolDef: Tool = {
   description: 'Adjust image file size to fit within a range',
   category: 'image',
   input: 'single',
-  component: AdjustSizeTool,
+  component: AdjustSize,
 };
 
 export default toolDef;

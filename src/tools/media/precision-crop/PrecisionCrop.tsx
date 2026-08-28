@@ -1,30 +1,24 @@
-// src/tools/image/form-crop/index.tsx
+// src/tools/image/precision-crop/PrecisionCrop.tsx
 import { useState, useEffect, useCallback } from 'react';
-import { Tool } from '@/core/registry/toolRegistry';
 import { useFileStore } from '@/core/store/fileStore';
 import { FileUpload } from '@/shared/components/FileUpload';
 import { FileCard } from '@/shared/components/FileCard';
 import { Motion } from '@/core/motion/motion';
 import { Stagger } from '@/core/motion/core/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
-import { FCDimensionInput } from './FCDimensionInput';
-import { FCCropper } from './FCCropper';
+import { DimensionInput } from './DimensionInput';
+import { Cropper } from './Cropper';
 import { ExportPanel } from '@/shared/components/ExportPanel';
-import type { Unit } from './FCDimensionInput';
-
+import type { Unit } from './DimensionInput';
 import { Grid } from '@/core/components/ui/Grid';
+import { IMAGE_CONFIG } from '@/entities/image';
 
-// 👇 IMPORT IMAGE CONFIG
-import { IMAGE_CONFIG } from '@/entities/image/services/config';
-
-const TOOL_ID = 'form-crop';
-
-interface FormCropToolProps {
+interface PrecisionCropProps {
   category: string;
   toolId: string;
 }
 
-function FormCropTool({ category, toolId }: FormCropToolProps) {
+export function PrecisionCrop({ toolId }: PrecisionCropProps) {
   const { list, upload, save, clear, promote, remove } = useFileStore();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,16 +37,11 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
     heightPx: 1,
   });
 
-  useEffect(() => {
-    return () => {};
-  }, [clear]);
-
   const handleUpload = useCallback(async (files: File[]) => {
     setIsLoading(true);
     try {
       await upload(files);
     } catch {
-      // silent
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +59,6 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
       const file = new File([croppedBlob], name, { type: croppedBlob.type });
       await save([file]);
     } catch {
-      // silent
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +101,6 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
             useFileStore.getState().process
           );
         } else {
-          // Cancel: stay in current tool
           return;
         }
       }
@@ -191,7 +178,7 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
               delay={100}
               style={{ opacity: 0, transform: 'scale(0.5)' }}
             >
-              <FCDimensionInput
+              <DimensionInput
                 initialWidth={cropData.rawWidth}
                 initialHeight={cropData.rawHeight}
                 onSizeChange={handleSizeChange}
@@ -210,7 +197,7 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
               delay={200}
               style={{ opacity: 0, transform: 'scale(0.5)' }}
             >
-              <FCCropper
+              <Cropper
                 file={currentFile}
                 aspectRatio={aspectRatio}
                 targetWidthPx={cropData.widthPx}
@@ -268,14 +255,3 @@ function FormCropTool({ category, toolId }: FormCropToolProps) {
     </div>
   );
 }
-
-const toolDef: Tool = {
-  id: 'form-crop',
-  name: 'Form Crop',
-  description: 'Crop images with precision',
-  category: 'image',
-  input: 'single',
-  component: FormCropTool,
-};
-
-export default toolDef;

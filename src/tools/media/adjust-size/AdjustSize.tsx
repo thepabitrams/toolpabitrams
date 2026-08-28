@@ -12,12 +12,12 @@ import { Controls } from './Controls';
 import { useAdjustSize } from './useAdjustSize';
 import { IMAGE_CONFIG } from '@/entities/image/config';
 
-interface AdjustSizeToolProps {
+interface AdjustSizeProps {
   category: string;
   toolId: string;
 }
 
-export function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
+export function AdjustSize({ category, toolId }: AdjustSizeProps) {
   const { list, upload, save, clear, promote, readFile, remove } = useFileStore();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,7 +38,6 @@ export function AdjustSizeTool({ category, toolId }: AdjustSizeToolProps) {
       try {
         await upload(files);
       } catch {
-        // silent
       } finally {
         setIsLoading(false);
       }
