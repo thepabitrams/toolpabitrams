@@ -1,4 +1,6 @@
 // src/tools/image/adjust-size/compression/compressProgressive.ts
+
+import { loadImage } from '@/lib/browser'; // 👈 ADDED IMPORT
 import {
   posterize,
   contrastReduce,
@@ -234,18 +236,4 @@ async function applyFallback(blob: Blob, format: string, isLossyFormat: boolean)
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b!), format));
 }
 
-function loadImage(blob: Blob): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(blob);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-    img.src = url;
-  });
-}
+// ❌ DELETED local loadImage function

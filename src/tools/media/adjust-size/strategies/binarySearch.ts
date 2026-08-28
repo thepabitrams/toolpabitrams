@@ -1,4 +1,7 @@
 // src/tools/image/adjust-size/strategies/binarySearch.ts
+
+import { loadImage } from '@/lib/browser'; // 👈 ADDED IMPORT
+
 export async function binarySearchCompress(
   file: File,
   targetKB: number,
@@ -47,21 +50,7 @@ export async function binarySearchCompress(
   return bestBlob;
 }
 
-function loadImage(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-    img.src = url;
-  });
-}
+// ❌ DELETED local loadImage function
 
 function encodeCanvas(canvas: HTMLCanvasElement, quality: number, format: string): Promise<Blob> {
   return new Promise((resolve) => {

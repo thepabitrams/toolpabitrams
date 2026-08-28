@@ -10,7 +10,7 @@ import { ExportPanel } from '@/shared/components/ExportPanel';
 import { Grid } from '@/core/components/ui/Grid';
 import { Controls } from './Controls';
 import { useAdjustSize } from './useAdjustSize';
-import { IMAGE_CONFIG } from '@/entities/image/services/config';
+import { IMAGE_CONFIG } from '@/entities/image/config';
 
 interface AdjustSizeToolProps {
   category: string;

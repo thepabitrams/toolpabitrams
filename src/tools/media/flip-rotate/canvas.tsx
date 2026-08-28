@@ -1,14 +1,14 @@
-// src/tools/image/flip-rotate/FRCard.tsx
+// src/tools/image/flip-rotate/canvas.tsx
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import { Button } from '@/core/components/ui/Button';
 import { useFileStore } from '@/core/store/fileStore';
-import { FRControls } from './FRControls';
-import { useFRLogic } from './useFRLogic';
+import { Controls } from './controls';
+import { useFlipRotate } from './useFlipRotate';
 import type { FileRef } from '@/core/store/fileStore';
 
-interface FRCardProps {
+interface CanvasProps {
   file: FileRef | null;
   onProcess: (blob: Blob) => Promise<void>;
   className?: string;
@@ -17,7 +17,7 @@ interface FRCardProps {
   padding?: number;
 }
 
-export const FRCard: React.FC<FRCardProps> = ({
+export const Canvas: React.FC<CanvasProps> = ({
   file,
   onProcess,
   className = '',
@@ -38,12 +38,11 @@ export const FRCard: React.FC<FRCardProps> = ({
     toggleFlipH,
     toggleFlipV,
     reset,
-    cssTransform,
+    computedTransform,   // ✅ FIXED
     hasChanges,
     processImage,
-  } = useFRLogic();
+  } = useFlipRotate();
 
-  // ─── Load image from OPFS ──────────────────────────────
   useEffect(() => {
     let isMounted = true;
     let objectUrl: string | null = null;
@@ -72,7 +71,6 @@ export const FRCard: React.FC<FRCardProps> = ({
     };
   }, [file, readFile]);
 
-  // ─── Handle Export ───────────────────────────────────────
   const handleApply = async () => {
     if (!file || isExporting) return;
     setIsExporting(true);
@@ -101,7 +99,6 @@ export const FRCard: React.FC<FRCardProps> = ({
   return (
     <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>
       <Card className="overflow-hidden p-0">
-        {/* ─── Image Preview Area ─── */}
         <div
           className="relative w-full aspect-square min-h-[300px] sm:min-h-[400px] bg-gray-100 dark:bg-gray-800"
           style={{ touchAction: 'none' }}
@@ -113,7 +110,7 @@ export const FRCard: React.FC<FRCardProps> = ({
               width: '100%',
               height: '100%',
               objectFit: 'contain',
-              transform: cssTransform,
+              transform: computedTransform,   // ✅ FIXED
               transformOrigin: 'center center',
               transition: 'transform 0.2s ease',
               willChange: 'transform',
@@ -121,8 +118,7 @@ export const FRCard: React.FC<FRCardProps> = ({
           />
         </div>
 
-        {/* ─── Controls ────────────────────────────────────── */}
-        <FRControls
+        <Controls
           rotation={rotation}
           flipH={flipH}
           flipV={flipV}
@@ -134,7 +130,6 @@ export const FRCard: React.FC<FRCardProps> = ({
           hasChanges={hasChanges}
         />
 
-        {/* ─── Apply Button (Static label, no "Processing..." bullshit) ─── */}
         <div className="px-4 pb-4">
           <Button
             onClick={handleApply}

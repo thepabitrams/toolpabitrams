@@ -1,7 +1,8 @@
 // src/tools/image/adjust-size/useAdjustSize.ts
+
 import { useState, useCallback } from 'react';
-import { extractImageMetadata } from '@/entities/image/services/readMetadata';
-import { injectDPI } from './utils/dpi';
+import { readDimensions, readDpi, writeDpi } from '@/entities/image/metadata';
+import { detectFormatAndAlpha } from '@/entities/image';
 import { binarySearchCompress, padding } from './strategies';
 import { compressProgressive } from './compression';
 
@@ -23,13 +24,17 @@ export function useAdjustSize() {
     async (file: File, minKB: number, maxKB: number, onProgress?: (data: any) => void) => {
       setIsProcessing(true);
       try {
-        const metadata = await extractImageMetadata(file);
-        const dpi = metadata.dpi || 300;
+        // ─── READ METADATA ────────────────────────────────
+        const [dims, dpiResult] = await Promise.all([
+          readDimensions(file),
+          readDpi(file),
+        ]);
+        const dpi = dpiResult.dpi || 300;
+
         const originalSizeKB = file.size / 1024;
         const midpointKB = (minKB + maxKB) / 2;
 
-        const { detectedFormat, hasAlpha } = await detectFormatAndAlpha(file);
-        const originalFormat = detectedFormat || 'image/png';
+        const { format: originalFormat, hasAlpha } = await detectFormatAndAlpha(file);
         const isLossyFormat = ['image/jpeg', 'image/webp', 'image/avif'].includes(originalFormat);
 
         let resultBlob: Blob = file;
@@ -68,7 +73,7 @@ export function useAdjustSize() {
 
         if (finalFormat === 'image/jpeg' || finalFormat === 'image/jpg') {
           const finalFile = new File([resultBlob], 'output.jpg', { type: finalFormat });
-          finalBlob = await injectDPI(finalFile, dpi, finalFormat);
+          finalBlob = await writeDpi(finalFile, dpi);
         } else {
           finalBlob = resultBlob;
         }
@@ -104,43 +109,4 @@ export function useAdjustSize() {
   );
 
   return { process, isProcessing };
-}
-
-async function detectFormatAndAlpha(file: File): Promise<{ detectedFormat: string; hasAlpha: boolean }> {
-  if (file.type && file.type !== '') {
-    const hasAlpha = file.type === 'image/png' || file.type === 'image/webp' || file.type === 'image/gif';
-    return { detectedFormat: file.type, hasAlpha };
-  }
-
-  try {
-    const arrayBuffer = await file.slice(0, 12).arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    const hex = Array.from(bytes)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join(' ')
-      .toUpperCase();
-
-    if (hex.startsWith('FF D8 FF')) {
-      return { detectedFormat: 'image/jpeg', hasAlpha: false };
-    }
-    if (hex.startsWith('89 50 4E 47')) {
-      return { detectedFormat: 'image/png', hasAlpha: true };
-    }
-    if (hex.startsWith('47 49 46 38')) {
-      return { detectedFormat: 'image/gif', hasAlpha: true };
-    }
-    if (hex.startsWith('52 49 46 46')) {
-      return { detectedFormat: 'image/webp', hasAlpha: true };
-    }
-    if (hex.includes('66 74 79 70 61 76 69 66')) {
-      return { detectedFormat: 'image/avif', hasAlpha: false };
-    }
-    if (hex.startsWith('42 4D')) {
-      return { detectedFormat: 'image/bmp', hasAlpha: false };
-    }
-  } catch {
-    // silent
-  }
-
-  return { detectedFormat: 'image/png', hasAlpha: true };
 }

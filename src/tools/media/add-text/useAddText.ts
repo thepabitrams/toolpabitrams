@@ -1,6 +1,9 @@
+// src/tools/image/add-text/useAddText.ts
+
 import { useState, useCallback, useMemo } from 'react';
-import { extractImageMetadata } from '@/entities/image/services/readMetadata';
-import { injectImageMetadata } from '@/entities/image/services/writeMetadata';
+import { readDpi, writeDpi } from '@/entities/image/metadata';
+import { detectFormatAndAlpha } from '@/entities/image';
+import { loadImage, exportCanvas } from '@/lib/browser';
 
 export interface TextConfig {
   content: string;
@@ -14,7 +17,7 @@ export interface TextConfig {
   position: 'top' | 'bottom';
 }
 
-export interface AddTextReturn { // ✅ UPDATED INTERFACE NAME
+export interface AddTextReturn {
   config: TextConfig;
   updateText: (content: string) => void;
   updateFontSize: (size: number) => void;
@@ -30,39 +33,6 @@ export interface AddTextReturn { // ✅ UPDATED INTERFACE NAME
   processImage: (file: File) => Promise<Blob>;
 }
 
-function loadImage(blob: Blob): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(blob);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-    img.src = url;
-  });
-}
-
-function exportCanvas(
-  canvas: HTMLCanvasElement,
-  format: string = 'image/jpeg',
-  quality?: number
-): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Canvas export failed'));
-      },
-      format,
-      quality
-    );
-  });
-}
-
 const defaultConfig: TextConfig = {
   content: 'Add your text here',
   fontSize: 48,
@@ -75,7 +45,7 @@ const defaultConfig: TextConfig = {
   position: 'bottom',
 };
 
-export function useAddText(): AddTextReturn { // ✅ RENAMED FUNCTION
+export function useAddText(): AddTextReturn {
   const [config, setConfig] = useState<TextConfig>(defaultConfig);
 
   const updateText = useCallback((content: string) => {
@@ -143,8 +113,8 @@ export function useAddText(): AddTextReturn { // ✅ RENAMED FUNCTION
 
     let originalDpi = 96;
     try {
-      const meta = await extractImageMetadata(file);
-      if (meta.dpi) originalDpi = meta.dpi;
+      const dpi = await readDpi(file);
+      if (dpi.dpi) originalDpi = dpi.dpi;
     } catch {}
 
     const canvas = document.createElement('canvas');
@@ -220,12 +190,14 @@ export function useAddText(): AddTextReturn { // ✅ RENAMED FUNCTION
 
     ctx.restore();
 
-    const format = file.type || 'image/jpeg';
-    const quality = format === 'image/jpeg' || format === 'image/webp' ? 0.95 : undefined;
-    const blob = await exportCanvas(canvas, format, quality);
+    const { format, hasAlpha } = await detectFormatAndAlpha(file);
+    const outputFormat = hasAlpha ? format : 'image/jpeg';
+    const quality = outputFormat === 'image/jpeg' ? 0.95 : undefined;
+    const blob = await exportCanvas(canvas, outputFormat, quality);
 
-    const fileWithName = new File([blob], file.name, { type: blob.type });
-    return injectImageMetadata(fileWithName, originalDpi);
+    const ext = outputFormat.split('/')[1] || 'png';
+    const finalFile = new File([blob], `text-added.${ext}`, { type: outputFormat });
+    return writeDpi(finalFile, originalDpi);
   }, [config]);
 
   return {

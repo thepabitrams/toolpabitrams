@@ -1,3 +1,4 @@
+// src/tools/image/flip-rotate/FlipRotate.tsx
 import React, { useState, useCallback } from 'react';
 import { useFileStore } from '@/core/store/fileStore';
 import { FileUpload } from '@/shared/components/FileUpload';
@@ -7,15 +8,16 @@ import { Motion } from '@/core/motion/motion';
 import { Stagger } from '@/core/motion/core/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { Grid } from '@/core/components/ui/Grid';
-import { Editor } from './Editor';
+import { Canvas } from './canvas'; // 👈 Changed
 import { IMAGE_CONFIG } from '@/entities/image/config';
 
-interface AddTextProps {
+interface FlipRotateToolProps {
+  category: string;
   toolId: string;
 }
 
-function AddText({ toolId }: AddTextProps) {
-  const { list, upload, save, clear, promote, remove } = useFileStore();
+export function FlipRotateTool({ category, toolId }: FlipRotateToolProps) { // 👈 Named export
+  const { list, upload, save, clear, promote, readFile, remove } = useFileStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const originalFiles = list('original');
@@ -51,7 +53,7 @@ function AddText({ toolId }: AddTextProps) {
         const ext = blob.type.split('/')[1] || 'jpg';
         const resultFile = new File(
           [blob],
-          `text-added.${ext}`,
+          `transformed.${ext}`,
           { type: blob.type }
         );
         await save([resultFile]);
@@ -64,6 +66,7 @@ function AddText({ toolId }: AddTextProps) {
     [save]
   );
 
+  // ⚠️ We keep handleAction here for now (we'll move it to usePromotion later)
   const handleAction = useCallback(
     async (selectedToolId: string, variant: 'single' | 'multiple') => {
       if (!selectedToolId) {
@@ -71,6 +74,7 @@ function AddText({ toolId }: AddTextProps) {
         return;
       }
 
+      const processedFiles = list('process');
       if (processedFiles.length === 0) {
         alert('No processed files to promote');
         return;
@@ -112,7 +116,7 @@ function AddText({ toolId }: AddTextProps) {
 
       window.location.href = `/${selectedToolId}`;
     },
-    [processedFiles, promote, remove]
+    [list, promote, remove]
   );
 
   const hasFile = !!currentFile;
@@ -157,7 +161,7 @@ function AddText({ toolId }: AddTextProps) {
               delay={100}
               style={{ opacity: 0, transform: 'scale(0.5)' }}
             >
-              <Editor
+              <Canvas // 👈 Changed
                 file={currentFile}
                 onProcess={handleProcess}
                 minWidth={360}
@@ -196,7 +200,7 @@ function AddText({ toolId }: AddTextProps) {
               <ExportPanel
                 file={latestProcessed}
                 variant="single"
-                initialFileName="text-added"
+                initialFileName="transformed"
                 onClear={clear}
                 toolId={toolId}
                 onToolSelect={handleAction}
@@ -211,5 +215,3 @@ function AddText({ toolId }: AddTextProps) {
     </div>
   );
 }
-
-export { AddText };
