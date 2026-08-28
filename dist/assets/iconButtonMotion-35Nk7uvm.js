@@ -1,1 +1,0 @@
-import{a as e,i as t,o as n}from"./Container-nwgOKmzr.js";var r=(t=e.hoverMedium)=>`hover:scale-[${t}]`,i=()=>({className:`${n()} ${r(e.hoverLarge)} ${t(e.iconPress)}`});export{r as n,i as t};

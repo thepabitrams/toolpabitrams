@@ -1,0 +1,1 @@
+import{t as e}from"./owner-DVV8yZjv.js";export{e as OwnerCard,e as default};

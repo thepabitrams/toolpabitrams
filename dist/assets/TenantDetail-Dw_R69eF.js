@@ -1,0 +1,1 @@
+import{t as e}from"./TenantDetail-gVHltZG1.js";export{e as TenantDetail,e as default};

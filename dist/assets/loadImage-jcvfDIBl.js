@@ -1,0 +1,1 @@
+import"./metadata-BhW8V0X8.js";var e={accept:{"image/*":[]},label:`Image`,extensions:`jpg, png, webp, gif, svg`};function t(e){return new Promise((t,n)=>{let r=new Image,i=URL.createObjectURL(e);r.onload=()=>{URL.revokeObjectURL(i),t(r)},r.onerror=()=>{URL.revokeObjectURL(i),n(Error(`Failed to load image`))},r.src=i})}export{e as n,t};

@@ -1,0 +1,1 @@
+import{t as e}from"./OwnerChargesCard-CJzRjlvE.js";export{e as OwnerCharges,e as default};
