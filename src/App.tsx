@@ -1,40 +1,51 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { HomePage } from '@/pages/HomePage';
 import { ToolPage } from '@/pages/ToolPage';
 import { useEffect, useState } from 'react';
 import { useThemeStore } from '@/core/store/themeStore';
 import { useFileStore } from '@/core/store/fileStore';
+import { ToastContainer } from '@/core/components/ui/toast';
+import { useToast } from '@/core/hooks/useToast';
+
+// ─── Wrapper component to listen to route changes ───
+function RouteChangeListener({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const { clearAll } = useToast();
+
+  useEffect(() => {
+    clearAll();
+  }, [location.pathname, clearAll]);
+
+  return <>{children}</>;
+}
 
 function App() {
   const { theme, setSystemTheme } = useThemeStore();
   const init = useFileStore((state) => state.init);
   const [isReady, setIsReady] = useState(false);
 
-  // --- Theme Initialization ---
   useEffect(() => {
     if (!localStorage.getItem('theme')) {
       setSystemTheme();
     } else {
-      document.documentElement.classList.toggle('dark', theme === 'dark');
+      const isDark = theme === 'dark';
+      document.documentElement.classList.toggle('dark', isDark);
+      document.body.classList.toggle('dark', isDark);
     }
   }, [theme, setSystemTheme]);
 
-  // --- Storage Initialization ---
   useEffect(() => {
     const initializeStorage = async () => {
       try {
         await init();
       } catch {
-        // Silent fail - app will still render
       } finally {
         setIsReady(true);
       }
     };
-
     initializeStorage();
   }, [init]);
 
-  // --- Show loading screen while storage initializes ---
   if (!isReady) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -48,10 +59,14 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/:toolId" element={<ToolPage />} />
-      </Routes>
+      <RouteChangeListener>
+        <Routes>
+          {/* Router paths */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/:toolId" element={<ToolPage />} />
+        </Routes>
+        <ToastContainer />
+      </RouteChangeListener>
     </BrowserRouter>
   );
 }

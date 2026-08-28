@@ -6,7 +6,7 @@ import type { Tool } from '@/core/registry/toolRegistry';
 import { Motion } from '@/core/motion/motion';
 import { toolCardGridMotion, toolCardListMotion } from '@/core/motion/compositions/toolCardMotion';
 import { marqueeSwing } from '@/core/motion/presets/marqueeSwing';
-import { injectKeyframes } from '@/core/motion/core/injection';
+import { injectKeyframes } from '@/core/motion/core/injection/keyframes';
 
 interface ToolCardProps {
   tool: Tool;

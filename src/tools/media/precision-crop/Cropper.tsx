@@ -17,7 +17,7 @@ interface CropperProps {
   targetWidthPx: number;
   targetHeightPx: number;
   inputDpi?: number;
-  onCrop: (blob: Blob, name: string) => Promise<void>;
+  onCrop: (blob: Blob, name: string, originalMimeType: string, actualMimeType: string) => Promise<void>;
   className?: string;
   minWidth?: number;
   minHeight?: number;
@@ -69,6 +69,7 @@ export const Cropper: React.FC<CropperProps> = ({
           setImageUrl(objectUrl);
         }
       } catch {
+        // ignore
       }
     };
 
@@ -88,14 +89,15 @@ export const Cropper: React.FC<CropperProps> = ({
 
   const handleCrop = useCallback(async () => {
     if (!file || !croppedAreaPixels || !imageUrl) return;
+
     try {
       const originalFile = await readFile(file.storageKey);
       if (!originalFile) throw new Error("Failed to read file");
 
       const image = await loadImage(originalFile);
 
-      const requestedMimeType = originalFile.type || 'image/png';
-      const supportsAlpha = requestedMimeType !== 'image/jpeg' && requestedMimeType !== 'image/bmp';
+      const originalMimeType = originalFile.type || 'image/png';
+      const supportsAlpha = originalMimeType !== 'image/jpeg' && originalMimeType !== 'image/bmp';
 
       const canvas = document.createElement('canvas');
       canvas.width = targetWidthPx;
@@ -113,16 +115,24 @@ export const Cropper: React.FC<CropperProps> = ({
         0, 0, targetWidthPx, targetHeightPx
       );
 
-      const quality = (requestedMimeType === 'image/jpeg' || requestedMimeType === 'image/webp') ? 0.92 : undefined;
-      let blob = await exportCanvas(canvas, requestedMimeType, quality);
+      let blob: Blob;
+      const quality = (originalMimeType === 'image/jpeg' || originalMimeType === 'image/webp') ? 0.92 : undefined;
 
-      const actualMimeType = blob.type || requestedMimeType;
+      try {
+        blob = await exportCanvas(canvas, originalMimeType, quality);
+      } catch {
+        blob = await exportCanvas(canvas, 'image/png');
+      }
 
-      if (actualMimeType !== requestedMimeType) {
-        console.warn(
-          `Browser exported as "${actualMimeType}" instead of "${requestedMimeType}". ` +
-          `Using actual type for the output.`
-        );
+      let actualMimeType = blob.type || '';
+
+      if (!actualMimeType) {
+        try {
+          const tempFile = new File([blob], 'temp', { type: originalMimeType });
+          actualMimeType = tempFile.type || originalMimeType;
+        } catch {
+          actualMimeType = originalMimeType;
+        }
       }
 
       const finalMimeType = actualMimeType;
@@ -134,9 +144,11 @@ export const Cropper: React.FC<CropperProps> = ({
       const baseName = file.name.replace(/\.[^.]+$/, '');
       const newName = `${baseName}_cropped_${targetWidthPx}x${targetHeightPx}.${extension}`;
 
-      await onCrop(finalBlob, newName);
+      await onCrop(finalBlob, newName, originalMimeType, actualMimeType);
+
     } catch (err) {
       console.error('Crop error:', err);
+      throw new Error('Failed to crop image. Please try again.');
     }
   }, [file, croppedAreaPixels, targetWidthPx, targetHeightPx, inputDpi, onCrop, imageUrl, readFile]);
 
