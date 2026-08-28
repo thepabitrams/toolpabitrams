@@ -1,0 +1,1 @@
+import{a as e}from"./ExportPanel-CC-D0lGp.js";async function t(t,n){let r={XResolution:Math.round(n),YResolution:Math.round(n),ResolutionUnit:`inches`};try{let n=await e(t,r);return n.success?new Blob([n.data],{type:t.type}):t}catch{return t}}var n={accept:{"image/*":[]},label:`Image`,extensions:`jpg, png, webp, gif, svg`};export{t as n,n as t};

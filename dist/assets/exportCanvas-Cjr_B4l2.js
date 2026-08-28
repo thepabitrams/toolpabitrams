@@ -1,0 +1,1 @@
+function e(e,t=`image/png`,n){return new Promise((r,i)=>{e.toBlob(e=>{e?r(e):i(Error(`Canvas export failed`))},t,n)})}export{e as t};

@@ -1,0 +1,1 @@
+function e(e,t=!0){let n=e.getContext(`2d`);return t?n.clearRect(0,0,e.width,e.height):(n.fillStyle=`#ffffff`,n.fillRect(0,0,e.width,e.height)),n}export{e as t};

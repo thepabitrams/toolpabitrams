@@ -23,6 +23,10 @@ function findToolFolders(dir: string): string[] {
 }
 
 export default defineConfig({
+  define: {
+    __dirname: '""',
+  },
+
   plugins: [
     {
       name: 'auto-generate-tool-manifest',
@@ -108,13 +112,17 @@ export default defineConfig({
       },
     }),
   ],
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
+
   build: {
+    chunkSizeWarningLimit: 5000,
     rollupOptions: {
+      external: ['workbox-window'],
       output: {
         manualChunks(id) {
           if (id.includes('react') || id.includes('react-dom') || id.includes('zustand')) {
@@ -129,5 +137,9 @@ export default defineConfig({
         },
       },
     },
+  },
+
+  optimizeDeps: {
+    exclude: ['@6over3/zeroperl-ts'],
   },
 });

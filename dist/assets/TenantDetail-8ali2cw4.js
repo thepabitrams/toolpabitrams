@@ -1,0 +1,1 @@
+import{t as e}from"./TenantDetail-Cy5re42I.js";export{e as TenantDetail,e as default};

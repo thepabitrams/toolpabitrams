@@ -1,0 +1,1 @@
+import{t as e}from"./owner-hmi_IX91.js";export{e as OwnerCard,e as default};
