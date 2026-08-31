@@ -14,7 +14,7 @@ export function useRemove() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'processing' | 'ready' | 'error'>('idle');
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedModelId, setSelectedModelId] = useState<string>('isnet');
+  const [selectedModelId, setSelectedModelId] = useState<string>('birefnet');
 
   const originalFileRef = useRef<File | null>(null);
   const processingIntervalRef = useRef<NodeJS.Timeout | null>(null);

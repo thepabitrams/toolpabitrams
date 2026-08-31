@@ -3,7 +3,7 @@
 import { pipeline } from '@huggingface/transformers';
 import type { ModelStrategy } from './base';
 
-export const mvanetStrategy: ModelStrategy = {
+export const mvanet: ModelStrategy = {
   id: 'mvanet',
   name: 'MVANet',
   license: 'MIT ✅',

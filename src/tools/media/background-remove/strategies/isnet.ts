@@ -3,7 +3,7 @@
 import { pipeline } from '@huggingface/transformers';
 import type { ModelStrategy } from './base';
 
-export const isnetStrategy: ModelStrategy = {
+export const isnet: ModelStrategy = {
   id: 'isnet',
   name: 'ISNet (ONNX)',
   license: 'Apache-2.0 ✅',

@@ -3,9 +3,9 @@
 import { pipeline } from '@huggingface/transformers';
 import type { ModelStrategy } from './base';
 
-export const birefnetStrategy: ModelStrategy = {
+export const birefnet: ModelStrategy = {
   id: 'birefnet',
-  name: 'BiRefNet-lite-512',
+  name: 'BiRefNet',
   license: 'MIT ✅',
   size: '94 MB',
   description: 'Highest quality, MIT licensed',

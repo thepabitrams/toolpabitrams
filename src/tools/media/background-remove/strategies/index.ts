@@ -2,26 +2,26 @@
 
 export type { ModelStrategy } from './base';
 
-import { birefnetStrategy } from './birefnet';
-import { isnetStrategy } from './isnet';
-import { modnetStrategy } from './modnet';
-import { ormbgStrategy } from './ormbg';
-import { mvanetStrategy } from './mvanet';
+import { birefnet } from './birefnet';
+import { isnet } from './isnet';
+import { modnet } from './modnet';
+import { ormbg } from './ormbg';
+import { mvanet } from './mvanet';
 
 export {
-  birefnetStrategy,
-  isnetStrategy,
-  modnetStrategy,
-  ormbgStrategy,
-  mvanetStrategy,
+  birefnet,
+  isnet,
+  modnet,
+  ormbg,
+  mvanet,
 };
 
 export const strategies = {
-  birefnet: birefnetStrategy,
-  isnet: isnetStrategy,
-  modnet: modnetStrategy,
-  ormbg: ormbgStrategy,
-  mvanet: mvanetStrategy,
+  birefnet: birefnet,
+  isnet: isnet,
+  modnet: modnet,
+  ormbg: ormbg,
+  mvanet: mvanet,
 };
 
 export const strategyList = Object.values(strategies);

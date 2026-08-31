@@ -3,9 +3,9 @@
 import { pipeline } from '@huggingface/transformers';
 import type { ModelStrategy } from './base';
 
-export const ormbgStrategy: ModelStrategy = {
+export const ormbg: ModelStrategy = {
   id: 'ormbg',
-  name: 'ormbg',
+  name: 'ORMBG',
   license: 'Apache-2.0 ✅',
   size: '~? MB',
   description: 'Photorealistic cut-out, Apache-2.0',

@@ -3,7 +3,7 @@
 import { AutoModel, AutoProcessor, RawImage } from '@huggingface/transformers';
 import type { ModelStrategy } from './base';
 
-export const modnetStrategy: ModelStrategy = {
+export const modnet: ModelStrategy = {
   id: 'modnet',
   name: 'MODNet',
   license: 'Apache-2.0 ✅',
