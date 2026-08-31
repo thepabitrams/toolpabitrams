@@ -1,19 +1,19 @@
-// src/tools/image/background-remove/components/BRRemove.tsx
+// src/tools/image/background-remove/remove/Remove.tsx
 
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import { Button } from '@/core/components/ui/Button';
-import { useFileStore } from '@/core/store/fileStore';
-import { useBRRemove } from '../hooks/useBRRemove';
-import type { FileRef } from '@/core/store/fileRef';
-import { FiLoader, FiRefreshCw } from 'react-icons/fi';
 import { Select } from '@/core/components/ui/Select';
-import { BRStatusBadge } from './BRStatusBadge';
-import { BRStatusMessage } from './BRStatusMessage';
+import { FiLoader, FiRefreshCw } from 'react-icons/fi';
+import { useFileStore } from '@/core/store/fileStore';
 import { extractImageMetadata } from '@/entities/image/services/readMetadata';
+import type { FileRef } from '@/core/store/fileRef';
+import { useRemove } from './useRemove';
+import { StatusBadge } from '../components/StatusBadge';
+import { StatusMessage } from '../components/StatusMessage';
 
-interface BRRemoveProps {
+interface RemoveProps {
   file: FileRef | null;
   onCutoutGenerated: (blob: Blob, metadata: { width?: number; height?: number; dpi?: number; unit?: string }) => void;
   className?: string;
@@ -22,7 +22,7 @@ interface BRRemoveProps {
   padding?: number;
 }
 
-const BRRemove: React.FC<BRRemoveProps> = ({
+export const Remove: React.FC<RemoveProps> = ({
   file,
   onCutoutGenerated,
   className = '',
@@ -43,7 +43,7 @@ const BRRemove: React.FC<BRRemoveProps> = ({
     retry,
     reset,
     availableModels,
-  } = useBRRemove();
+  } = useRemove();
 
   useEffect(() => {
     let isMounted = true;
@@ -129,8 +129,6 @@ const BRRemove: React.FC<BRRemoveProps> = ({
   return (
     <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>
       <Card className="overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
-
-        {/* ─── Image Preview ────────────────────────────────── */}
         <div className="relative w-full aspect-square min-h-[300px] sm:min-h-[400px] bg-gray-100 dark:bg-gray-800">
           <img
             src={imageUrl}
@@ -138,39 +136,26 @@ const BRRemove: React.FC<BRRemoveProps> = ({
             className="w-full h-full object-contain"
             style={{ opacity: isBusy ? 0.5 : 1 }}
           />
-
           {getBadgeStatus() && (
-            <BRStatusBadge
-              status={getBadgeStatus()}
-              progress={progress}
-            />
+            <StatusBadge status={getBadgeStatus()} progress={progress} />
           )}
         </div>
 
-        {/* ─── Model Selection & Status ──────────────────── */}
         <div className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
-          
           <div className="px-4 py-3">
             <Select
               value={selectedModelId}
               onChange={setSelectedModel}
-              options={availableModels.map(m => ({  value: m.id, label: m.name }))}
+              options={availableModels.map(m => ({ value: m.id, label: m.name }))}
               label="Model"
               disabled={isBusy}
             />
           </div>
-
-          {/* ─── Status Area (Simplified) ──────────────────── */}
           <div className="min-h-[60px] border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2.5 flex items-center">
-            <BRStatusMessage
-              status={status}
-              progress={progress}
-              errorMessage={errorMessage}
-            />
+            <StatusMessage status={status} progress={progress} errorMessage={errorMessage} />
           </div>
         </div>
 
-        {/* ─── Button Area ──────────────────── */}
         <div className="px-4 pb-4 pt-3">
           <Button
             onClick={isError ? handleRetry : handleGenerate}
@@ -195,10 +180,7 @@ const BRRemove: React.FC<BRRemoveProps> = ({
             )}
           </Button>
         </div>
-
       </Card>
     </Container>
   );
 };
-
-export default BRRemove;

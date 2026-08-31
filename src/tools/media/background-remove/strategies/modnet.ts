@@ -1,7 +1,7 @@
 // src/tools/image/background-remove/strategies/modnet.strategy.ts
 
 import { AutoModel, AutoProcessor, RawImage } from '@huggingface/transformers';
-import type { ModelStrategy } from './base.strategy';
+import type { ModelStrategy } from './base';
 
 export const modnetStrategy: ModelStrategy = {
   id: 'modnet',

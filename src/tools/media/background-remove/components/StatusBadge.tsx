@@ -1,24 +1,21 @@
-// src/tools/image/background-remove/components/BRStatusBadge.tsx
+// src/tools/image/background-remove/remove/components/StatusBadge.tsx
 
 import React from 'react';
 import { FiLoader, FiCheck, FiAlertCircle } from 'react-icons/fi';
 
 type BadgeStatus = 'loading' | 'processing' | 'ready' | 'error';
 
-interface BRStatusBadgeProps {
+interface StatusBadgeProps {
   status: BadgeStatus;
   progress?: number;
   className?: string;
 }
 
-export const BRStatusBadge: React.FC<BRStatusBadgeProps> = ({
+export const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
   progress = 0,
   className = '',
 }) => {
-  // ✅ AWS/Google style: Dark badge with light text (always readable)
-  // In light mode: black/80 background, white text
-  // In dark mode: white/20 background, white text (slightly transparent)
   const baseClasses = "absolute top-3 right-3 text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-sm transition-all duration-200";
 
   if (status === 'loading' || status === 'processing') {
@@ -51,4 +48,4 @@ export const BRStatusBadge: React.FC<BRStatusBadgeProps> = ({
   return null;
 };
 
-export default BRStatusBadge;
+export default StatusBadge;

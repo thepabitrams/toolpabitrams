@@ -1,16 +1,14 @@
-// src/tools/image/background-remove/hooks/useBRAdd.ts
+// src/tools/image/background-remove/add/useAdd.ts
 
 import { useState, useCallback } from 'react';
 import { injectImageMetadata } from '@/entities/image/services/writeMetadata';
 
-// ✅ NEW: Supported export formats
 export type OutputFormat = 'png' | 'jpeg' | 'webp';
 
-export function useBRAdd() {
+export function useAdd() {
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
-  const [outputFormat, setOutputFormat] = useState<OutputFormat>('png'); // ✅ NEW
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>('png');
 
-  // ─── Get image metadata (DPI, dimensions) ──────────────────
   const getImageMetadata = useCallback((img: HTMLImageElement) => {
     let dpi = 96;
     let width = img.width;
@@ -22,7 +20,6 @@ export function useBRAdd() {
     return { dpi, width, height };
   }, []);
 
-  // ─── Apply Background Color ──────────────────────────
   const applyBackground = useCallback(
     async (cutoutBlob: Blob, color: string, format: OutputFormat): Promise<Blob> => {
       return new Promise((resolve, reject) => {
@@ -40,14 +37,10 @@ export function useBRAdd() {
           canvas.height = height;
           const ctx = canvas.getContext('2d')!;
 
-          // 1. Fill with color
           ctx.fillStyle = color;
           ctx.fillRect(0, 0, width, height);
-
-          // 2. Draw cutout on top
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Determine MIME type and quality
           let mimeType = 'image/png';
           let quality: number | undefined = undefined;
           if (format === 'jpeg') {
@@ -77,26 +70,21 @@ export function useBRAdd() {
     []
   );
 
-  // ─── Apply Background + Inject Metadata ──────────────────
   const applyBackgroundWithMetadata = useCallback(
     async (
       cutoutBlob: Blob,
       color: string,
       dpi: number | undefined,
-      format: OutputFormat // ✅ NEW: pass format
+      format: OutputFormat
     ): Promise<Blob> => {
-      // 1. Apply background with selected format
       let finalBlob = await applyBackground(cutoutBlob, color, format);
 
-      // 2. Inject DPI metadata if provided
       if (dpi) {
-        // Determine extension
         let ext = 'png';
         if (format === 'jpeg') ext = 'jpg';
         else if (format === 'webp') ext = 'webp';
         else ext = 'png';
 
-        // Create File with correct extension and MIME
         const tempFile = new File([finalBlob], `final.${ext}`, {
           type: finalBlob.type,
         });
@@ -108,7 +96,6 @@ export function useBRAdd() {
     [applyBackground]
   );
 
-  // ─── Generate Live Preview ──────────────────────────────
   const generatePreview = useCallback(
     async (cutoutBlob: Blob, color: string): Promise<string> => {
       return new Promise((resolve, reject) => {
@@ -151,8 +138,8 @@ export function useBRAdd() {
   return {
     backgroundColor,
     setBackgroundColor,
-    outputFormat,        // ✅ NEW
-    setOutputFormat,     // ✅ NEW
+    outputFormat,
+    setOutputFormat,
     getImageMetadata,
     applyBackground,
     applyBackgroundWithMetadata,

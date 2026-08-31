@@ -1,4 +1,4 @@
-// src/tools/image/background-remove/components/BRAdd.tsx
+// src/tools/image/background-remove/add/Add.tsx
 
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/core/components/ui/Card';
@@ -10,27 +10,25 @@ import { ColorPicker } from '@/core/components/ui/ColorPicker';
 import { FiLoader } from 'react-icons/fi';
 import { MdDelete } from 'react-icons/md';
 import { useFileStore } from '@/core/store/fileStore';
-import { useBRAdd } from '../hooks/useBRAdd';
 import type { FileRef } from '@/core/store/fileRef';
+import { useAdd } from './useAdd';
 
-interface BRAddProps {
+interface AddProps {
   cutoutFileRef: FileRef | null;
   metadata: { width?: number; height?: number; dpi?: number; unit?: string } | null;
   isProcessing: boolean;
   progress: number;
-  // ✅ REMOVED: onComplete (dead code - not passed from parent)
   className?: string;
   minWidth?: number;
   minHeight?: number;
   padding?: number;
 }
 
-const BRAdd: React.FC<BRAddProps> = ({
+export const Add: React.FC<AddProps> = ({
   cutoutFileRef,
   metadata,
   isProcessing,
   progress,
-  // ✅ REMOVED: onComplete
   className = '',
   minWidth = 360,
   minHeight = 350,
@@ -43,14 +41,13 @@ const BRAdd: React.FC<BRAddProps> = ({
     outputFormat,
     setOutputFormat,
     applyBackgroundWithMetadata,
-  } = useBRAdd();
+  } = useAdd();
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [cutoutBlob, setCutoutBlob] = useState<Blob | null>(null);
 
-  // ─── Load cutout from the provided FileRef ──
   useEffect(() => {
     let isMounted = true;
     let objectUrl: string | null = null;
@@ -82,7 +79,7 @@ const BRAdd: React.FC<BRAddProps> = ({
         };
         img.src = objectUrl;
       } catch (error) {
-        console.error('[BRAdd] Failed to load cutout:', error);
+        console.error('[Add] Failed to load cutout:', error);
         if (isMounted) {
           setCutoutBlob(null);
           setImageUrl(null);
@@ -99,7 +96,6 @@ const BRAdd: React.FC<BRAddProps> = ({
     };
   }, [cutoutFileRef, readFile]);
 
-  // ─── Handle Complete ─────────────────────────────────────────
   const handleComplete = async () => {
     if (!cutoutBlob) {
       alert('No cutout available. Please remove background first.');
@@ -125,16 +121,14 @@ const BRAdd: React.FC<BRAddProps> = ({
         type: finalBlob.type,
       });
       await save([resultFile]);
-      // ✅ REMOVED: onComplete(finalBlob) - dead code
     } catch (error) {
-      console.error('[BRAdd] Error:', error);
+      console.error('[Add] Error:', error);
       alert(`Export failed: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setIsExporting(false);
     }
   };
 
-  // ─── If no cutout, show placeholder ──────────────────────────
   if (!cutoutBlob || !imageUrl) {
     return (
       <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>
@@ -151,15 +145,13 @@ const BRAdd: React.FC<BRAddProps> = ({
   const aspectRatio = imageDimensions ? imageDimensions.width / imageDimensions.height : 1;
   const formatOptions = [
     { value: 'png', label: 'PNG' },
-  { value: 'jpeg', label: 'JPEG' },
-  { value: 'webp', label: 'WebP' },
+    { value: 'jpeg', label: 'JPEG' },
+    { value: 'webp', label: 'WebP' },
   ];
 
   return (
     <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>
       <Card className="overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
-
-        {/* ─── Image Preview ────────────────────────────────── */}
         <div className="relative w-full aspect-square min-h-[300px] sm:min-h-[400px] bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
           <div className="relative" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div
@@ -189,14 +181,9 @@ const BRAdd: React.FC<BRAddProps> = ({
           </div>
         </div>
 
-        {/* ─── Controls - Google Material Style ──────────────────── */}
         <div className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
           <div className="px-4 py-2.5">
-            
-            {/* Fixed container - No alignment changes */}
             <div className="flex items-center justify-center gap-2 flex-wrap min-h-[36px]">
-              
-              {/* BG Color Picker - Using reusable ColorPicker */}
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400">BG</label>
                 <ColorPicker
@@ -207,7 +194,6 @@ const BRAdd: React.FC<BRAddProps> = ({
                 />
               </div>
 
-              {/* Delete/Reset Button - Google Material delete icon */}
               <IconButton
                 onClick={() => setBackgroundColor('#ffffff')}
                 disabled={isProcessing || isExporting}
@@ -219,10 +205,8 @@ const BRAdd: React.FC<BRAddProps> = ({
                 <MdDelete className="w-5 h-5" />
               </IconButton>
 
-              {/* Divider */}
               <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
 
-              {/* Format Select Group */}
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Format</label>
                 <Select
@@ -235,7 +219,6 @@ const BRAdd: React.FC<BRAddProps> = ({
               </div>
             </div>
 
-            {/* Dimensions - Subtle helper text */}
             {imageDimensions && (
               <div className="mt-1.5 text-[11px] text-gray-400 dark:text-gray-500 text-center">
                 {imageDimensions.width} × {imageDimensions.height} px
@@ -245,7 +228,6 @@ const BRAdd: React.FC<BRAddProps> = ({
           </div>
         </div>
 
-        {/* ─── Button ────────────────────────────────── */}
         <div className="px-4 pb-4 pt-3">
           <Button
             onClick={handleComplete}
@@ -263,10 +245,7 @@ const BRAdd: React.FC<BRAddProps> = ({
             )}
           </Button>
         </div>
-
       </Card>
     </Container>
   );
 };
-
-export default BRAdd;

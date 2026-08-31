@@ -1,4 +1,4 @@
-// src/tools/image/background-remove/hooks/useBRRemove.ts
+// src/tools/image/background-remove/remove/useRemove.ts
 
 import { useState, useCallback, useRef } from 'react';
 import { strategies, strategyList } from '../strategies';
@@ -10,7 +10,7 @@ export interface CutoutResult {
   previewBlob: Blob | null;
 }
 
-export function useBRRemove() {
+export function useRemove() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'processing' | 'ready' | 'error'>('idle');
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -41,14 +41,12 @@ export function useBRRemove() {
 
       try {
         const blob = await strategy.run(file, (prog: number, speed: number, loaded?: number, total?: number) => {
-          // We ignore download progress – only use artificial markers
           if (prog === 10) {
-            // Still loading
+            // still loading
           } else if (prog === 60) {
             setStatus('processing');
             setProgress(60);
 
-            // Smooth AI counter: 61, 62, 63 ... 99
             if (processingIntervalRef.current) {
               clearInterval(processingIntervalRef.current);
             }
@@ -82,7 +80,6 @@ export function useBRRemove() {
         setStatus('ready');
         setProgress(100);
         return { mask: null, originalFile: file, previewBlob: blob };
-        
       } catch (error) {
         console.error(`❌ ${strategy.name} failed:`, error);
         if (processingIntervalRef.current) {

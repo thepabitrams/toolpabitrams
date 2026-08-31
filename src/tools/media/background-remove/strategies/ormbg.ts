@@ -1,7 +1,7 @@
 // src/tools/image/background-remove/strategies/ormbg.strategy.ts
 
 import { pipeline } from '@huggingface/transformers';
-import type { ModelStrategy } from './base.strategy';
+import type { ModelStrategy } from './base';
 
 export const ormbgStrategy: ModelStrategy = {
   id: 'ormbg',

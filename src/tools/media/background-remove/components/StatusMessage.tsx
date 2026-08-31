@@ -1,16 +1,16 @@
-// src/tools/image/background-remove/components/BRStatusMessage.tsx
+// src/tools/image/background-remove/remove/components/StatusMessage.tsx
 
 import React from 'react';
 import { FiLoader, FiCheck, FiAlertCircle } from 'react-icons/fi';
 
-interface BRStatusMessageProps {
+interface StatusMessageProps {
   status: 'idle' | 'loading' | 'processing' | 'ready' | 'error';
   progress: number;
   errorMessage?: string | null;
   className?: string;
 }
 
-export const BRStatusMessage: React.FC<BRStatusMessageProps> = ({
+export const StatusMessage: React.FC<StatusMessageProps> = ({
   status,
   progress,
   errorMessage,
@@ -66,4 +66,4 @@ export const BRStatusMessage: React.FC<BRStatusMessageProps> = ({
   return null;
 };
 
-export default BRStatusMessage;
+export default StatusMessage;

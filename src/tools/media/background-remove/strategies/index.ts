@@ -1,23 +1,21 @@
 // src/tools/image/background-remove/strategies/index.ts
 
-export type { ModelStrategy } from './base.strategy';
+export type { ModelStrategy } from './base';
 
-// ─── Import all strategies ──────────────────────────────────
-import { birefnetStrategy } from './birefnet.strategy';
-import { isnetStrategy } from './isnet.strategy';
-import { modnetStrategy } from './modnet.strategy';
-import { ormbgStrategy } from './ormbg.strategy';
-import { mvanetStrategy } from './mvanet.strategy';
-// ❌ U²-Netp REMOVED — 401 Unauthorized, not worth the hassle
+import { birefnetStrategy } from './birefnet';
+import { isnetStrategy } from './isnet';
+import { modnetStrategy } from './modnet';
+import { ormbgStrategy } from './ormbg';
+import { mvanetStrategy } from './mvanet';
 
-// ─── Export individual strategies ──────────────────────────
-export { birefnetStrategy } from './birefnet.strategy';
-export { isnetStrategy } from './isnet.strategy';
-export { modnetStrategy } from './modnet.strategy';
-export { ormbgStrategy } from './ormbg.strategy';
-export { mvanetStrategy } from './mvanet.strategy';
+export {
+  birefnetStrategy,
+  isnetStrategy,
+  modnetStrategy,
+  ormbgStrategy,
+  mvanetStrategy,
+};
 
-// ─── Registry ──────────────────────────────────────────────
 export const strategies = {
   birefnet: birefnetStrategy,
   isnet: isnetStrategy,
@@ -26,5 +24,4 @@ export const strategies = {
   mvanet: mvanetStrategy,
 };
 
-// ─── List for dropdown ──────────────────────────────────────
 export const strategyList = Object.values(strategies);
