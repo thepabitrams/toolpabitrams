@@ -7,11 +7,12 @@ import { Button } from '@/core/components/ui/Button';
 import { Select } from '@/core/components/ui/Select';
 import { FiLoader, FiRefreshCw } from 'react-icons/fi';
 import { useFileStore } from '@/core/store/fileStore';
-import { extractImageMetadata } from '@/entities/image/services/readMetadata';
+import { readDimensions, readDpi } from '@/entities/image/metadata/read';
+import { loadImage, blobToUrl, revokeUrl } from '@/lib/browser';
 import type { FileRef } from '@/core/store/fileRef';
 import { useRemove } from './useRemove';
-import { StatusBadge } from '../components/StatusBadge';
-import { StatusMessage } from '../components/StatusMessage';
+import { StatusBadge } from './StatusBadge';
+import { StatusMessage } from './StatusMessage';
 
 interface RemoveProps {
   file: FileRef | null;
@@ -49,7 +50,7 @@ export const Remove: React.FC<RemoveProps> = ({
     let isMounted = true;
     let objectUrl: string | null = null;
 
-    const loadImage = async () => {
+    const loadImageUrl = async () => {
       if (!file) {
         setImageUrl(null);
         reset();
@@ -58,7 +59,7 @@ export const Remove: React.FC<RemoveProps> = ({
       try {
         const fileObj = await readFile(file.storageKey);
         if (fileObj && isMounted) {
-          objectUrl = URL.createObjectURL(fileObj);
+          objectUrl = blobToUrl(fileObj);
           setImageUrl(objectUrl);
         }
       } catch {
@@ -66,11 +67,11 @@ export const Remove: React.FC<RemoveProps> = ({
       }
     };
 
-    loadImage();
+    loadImageUrl();
 
     return () => {
       isMounted = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (objectUrl) revokeUrl(objectUrl);
     };
   }, [file, readFile, reset]);
 
@@ -85,11 +86,37 @@ export const Remove: React.FC<RemoveProps> = ({
     }
 
     try {
-      const metadata = await extractImageMetadata(actualFile);
+      let width = 0,
+        height = 0,
+        dpi = 96,
+        unit = 'px';
+      try {
+        const dims = await readDimensions(actualFile);
+        width = dims.width;
+        height = dims.height;
+        unit = dims.unit || 'px';
+      } catch {
+        const img = await loadImage(actualFile);
+        width = img.naturalWidth || img.width;
+        height = img.naturalHeight || img.height;
+      }
+      try {
+        const dpiInfo = await readDpi(actualFile);
+        dpi = dpiInfo.dpi || 96;
+        unit = dpiInfo.unit || 'px';
+      } catch {
+        // fallback to 96
+      }
+      const metadata = { width, height, dpi, unit };
+
       const result = await generateCutout(actualFile);
       if (result && result.previewBlob) {
         const ext = result.previewBlob.type.split('/')[1] || 'png';
-        const resultFile = new File([result.previewBlob], `cutout.${ext}`, { type: result.previewBlob.type });
+        const resultFile = new File(
+          [result.previewBlob],
+          `cutout.${ext}`,
+          { type: result.previewBlob.type }
+        );
         await upload([resultFile]);
         onCutoutGenerated(result.previewBlob, metadata);
       }
@@ -136,9 +163,7 @@ export const Remove: React.FC<RemoveProps> = ({
             className="w-full h-full object-contain"
             style={{ opacity: isBusy ? 0.5 : 1 }}
           />
-          {getBadgeStatus() && (
-            <StatusBadge status={getBadgeStatus()} progress={progress} />
-          )}
+          {getBadgeStatus() && <StatusBadge status={getBadgeStatus()} progress={progress} />}
         </div>
 
         <div className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">

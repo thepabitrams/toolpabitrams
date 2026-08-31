@@ -9,7 +9,7 @@ import { Motion } from '@/core/motion/motion';
 import { Stagger } from '@/core/motion/core/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { Grid } from '@/core/components/ui/Grid';
-import { IMAGE_CONFIG } from '@/entities/image/services/config';
+import { IMAGE_CONFIG } from '@/entities/image/config';
 import { Remove } from './remove';
 import { Add } from './add';
 import { useRemove } from './remove';
@@ -18,7 +18,7 @@ const TOOL_ID = 'background-remove';
 const METADATA_STORAGE_KEY = 'br_metadata';
 
 export const BackgroundRemove: React.FC = () => {
-  const { list, upload, clear, promote, remove, readFile } = useFileStore();
+  const { list, upload, clear, promote, remove } = useFileStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const originalFiles = list('original');

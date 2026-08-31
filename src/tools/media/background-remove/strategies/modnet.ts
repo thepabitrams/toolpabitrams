@@ -6,27 +6,11 @@ import type { ModelStrategy } from './base';
 export const modnet: ModelStrategy = {
   id: 'modnet',
   name: 'MODNet',
-  license: 'Apache-2.0 ✅',
-  size: '~10 MB',
-  description: 'Fastest, smallest, portraits',
 
   run: async (file: File, onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void): Promise<Blob> => {
-  
     onProgress(10, 0, 0, 0);
 
-    const model = await AutoModel.from_pretrained('Xenova/modnet', {
-      dtype: 'fp32',
-      progress_callback: (info: any) => {
-        if (info.status === 'downloading') {
-          const percent = Math.round((info.progress || 0) * 100);
-          const speed = (info.speed || 0) / (1024 * 1024); // MB/s
-          const loaded = (info.loaded || 0) / (1024 * 1024); // MB
-          const total = (info.total || 0) / (1024 * 1024); // MB
-          
-          onProgress(percent, speed, loaded, total);
-        }
-      },
-    });
+    const model = await AutoModel.from_pretrained('Xenova/modnet', { dtype: 'fp32' });
     onProgress(50, 0, 0, 0);
 
     const processor = await AutoProcessor.from_pretrained('Xenova/modnet');
@@ -74,7 +58,6 @@ export const modnet: ModelStrategy = {
 
     onProgress(100, 0, 0, 0);
 
-  
     return transparentBlob;
   },
 };

@@ -1,6 +1,6 @@
 // src/tools/image/background-remove/remove/useRemove.ts
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { strategies, strategyList } from '../strategies';
 import type { ModelStrategy } from '../strategies';
 
@@ -16,8 +16,16 @@ export function useRemove() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedModelId, setSelectedModelId] = useState<string>('birefnet');
 
-  const originalFileRef = useRef<File | null>(null);
   const processingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (processingIntervalRef.current) {
+        clearInterval(processingIntervalRef.current);
+        processingIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   const getStrategy = useCallback((): ModelStrategy => {
     const strategy = strategies[selectedModelId];
@@ -35,7 +43,6 @@ export function useRemove() {
       setStatus('loading');
       setProgress(0);
       setErrorMessage(null);
-      originalFileRef.current = file;
 
       const strategy = getStrategy();
 
@@ -125,7 +132,6 @@ export function useRemove() {
     setStatus('idle');
     setProgress(0);
     setErrorMessage(null);
-    originalFileRef.current = null;
   }, []);
 
   return {

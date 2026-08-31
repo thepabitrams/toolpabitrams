@@ -1,94 +1,63 @@
 // src/tools/image/background-remove/add/useAdd.ts
 
 import { useState, useCallback } from 'react';
-import { injectImageMetadata } from '@/entities/image/services/writeMetadata';
+import { writeDpi } from '@/entities/image/metadata/write';
+import { loadImage, createCanvas, exportCanvas } from '@/lib/browser';
 
 export type OutputFormat = 'png' | 'jpeg' | 'webp';
 
 export function useAdd() {
-  const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  const [backgroundColor, setBackgroundColor] = useState<string | null>(null);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('png');
 
-  const getImageMetadata = useCallback((img: HTMLImageElement) => {
-    let dpi = 96;
-    let width = img.width;
-    let height = img.height;
-
-    if (img.naturalWidth) width = img.naturalWidth;
-    if (img.naturalHeight) height = img.naturalHeight;
-
-    return { dpi, width, height };
-  }, []);
-
   const applyBackground = useCallback(
-    async (cutoutBlob: Blob, color: string, format: OutputFormat): Promise<Blob> => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        const url = URL.createObjectURL(cutoutBlob);
+    async (cutoutBlob: Blob, format: OutputFormat): Promise<Blob> => {
+      if (backgroundColor === null && format === 'png') {
+        return new Blob([cutoutBlob], { type: 'image/png' });
+      }
 
-        img.onload = () => {
-          URL.revokeObjectURL(url);
+      const img = await loadImage(cutoutBlob);
+      const width = img.width;
+      const height = img.height;
 
-          const width = img.width;
-          const height = img.height;
+      const canvas = createCanvas(width, height);
+      const ctx = canvas.getContext('2d')!;
 
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = backgroundColor || '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
 
-          ctx.fillStyle = color;
-          ctx.fillRect(0, 0, width, height);
-          ctx.drawImage(img, 0, 0, width, height);
+      let mimeType = 'image/png';
+      let quality: number | undefined = undefined;
+      if (format === 'jpeg') {
+        mimeType = 'image/jpeg';
+        quality = 0.95;
+      } else if (format === 'webp') {
+        mimeType = 'image/webp';
+        quality = 0.95;
+      } else {
+        mimeType = 'image/png';
+      }
 
-          let mimeType = 'image/png';
-          let quality: number | undefined = undefined;
-          if (format === 'jpeg') {
-            mimeType = 'image/jpeg';
-            quality = 0.95;
-          } else if (format === 'webp') {
-            mimeType = 'image/webp';
-            quality = 0.95;
-          } else {
-            mimeType = 'image/png';
-          }
-
-          canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Failed to export image'));
-          }, mimeType, quality);
-        };
-
-        img.onerror = () => {
-          URL.revokeObjectURL(url);
-          reject(new Error('Failed to load cutout image'));
-        };
-
-        img.src = url;
-      });
+      return await exportCanvas(canvas, mimeType, quality);
     },
-    []
+    [backgroundColor]
   );
 
   const applyBackgroundWithMetadata = useCallback(
     async (
       cutoutBlob: Blob,
-      color: string,
       dpi: number | undefined,
       format: OutputFormat
     ): Promise<Blob> => {
-      let finalBlob = await applyBackground(cutoutBlob, color, format);
+      let finalBlob = await applyBackground(cutoutBlob, format);
 
       if (dpi) {
-        let ext = 'png';
-        if (format === 'jpeg') ext = 'jpg';
-        else if (format === 'webp') ext = 'webp';
-        else ext = 'png';
-
+        let ext = format === 'jpeg' ? 'jpg' : format;
         const tempFile = new File([finalBlob], `final.${ext}`, {
-          type: finalBlob.type,
+          type: finalBlob.type || 'image/png',
         });
-        finalBlob = await injectImageMetadata(tempFile, dpi);
+        finalBlob = await writeDpi(tempFile, dpi);
       }
 
       return finalBlob;
@@ -96,53 +65,12 @@ export function useAdd() {
     [applyBackground]
   );
 
-  const generatePreview = useCallback(
-    async (cutoutBlob: Blob, color: string): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        const url = URL.createObjectURL(cutoutBlob);
-
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d')!;
-
-          ctx.fillStyle = color;
-          ctx.fillRect(0, 0, img.width, img.height);
-          ctx.drawImage(img, 0, 0, img.width, img.height);
-
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const previewUrl = URL.createObjectURL(blob);
-              resolve(previewUrl);
-            } else {
-              reject(new Error('Failed to generate preview'));
-            }
-          }, 'image/png');
-
-          URL.revokeObjectURL(url);
-        };
-
-        img.onerror = () => {
-          URL.revokeObjectURL(url);
-          reject(new Error('Failed to load cutout image'));
-        };
-
-        img.src = url;
-      });
-    },
-    []
-  );
-
   return {
     backgroundColor,
     setBackgroundColor,
     outputFormat,
     setOutputFormat,
-    getImageMetadata,
     applyBackground,
     applyBackgroundWithMetadata,
-    generatePreview,
   };
 }

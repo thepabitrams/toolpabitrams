@@ -12,6 +12,7 @@ import { MdDelete } from 'react-icons/md';
 import { useFileStore } from '@/core/store/fileStore';
 import type { FileRef } from '@/core/store/fileRef';
 import { useAdd } from './useAdd';
+import { loadImage, blobToUrl, revokeUrl } from '@/lib/browser';
 
 interface AddProps {
   cutoutFileRef: FileRef | null;
@@ -65,19 +66,16 @@ export const Add: React.FC<AddProps> = ({
         if (!fileObj || !isMounted) return;
 
         setCutoutBlob(fileObj);
-        objectUrl = URL.createObjectURL(fileObj);
+        objectUrl = blobToUrl(fileObj);
         setImageUrl(objectUrl);
 
-        const img = new Image();
-        img.onload = () => {
-          if (isMounted) {
-            setImageDimensions({
-              width: img.naturalWidth || img.width,
-              height: img.naturalHeight || img.height,
-            });
-          }
-        };
-        img.src = objectUrl;
+        const img = await loadImage(fileObj);
+        if (isMounted) {
+          setImageDimensions({
+            width: img.naturalWidth || img.width,
+            height: img.naturalHeight || img.height,
+          });
+        }
       } catch (error) {
         console.error('[Add] Failed to load cutout:', error);
         if (isMounted) {
@@ -92,9 +90,13 @@ export const Add: React.FC<AddProps> = ({
 
     return () => {
       isMounted = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (objectUrl) revokeUrl(objectUrl);
     };
   }, [cutoutFileRef, readFile]);
+
+  useEffect(() => {
+    setBackgroundColor(null);
+  }, [cutoutFileRef]);
 
   const handleComplete = async () => {
     if (!cutoutBlob) {
@@ -107,7 +109,6 @@ export const Add: React.FC<AddProps> = ({
     try {
       const finalBlob = await applyBackgroundWithMetadata(
         cutoutBlob,
-        backgroundColor,
         metadata?.dpi,
         outputFormat
       );
@@ -162,7 +163,7 @@ export const Add: React.FC<AddProps> = ({
                 maxHeight: '100%',
                 width: 'auto',
                 height: 'auto',
-                backgroundColor,
+                backgroundColor: backgroundColor || 'transparent',
                 boxShadow: '0 0 30px rgba(0,0,0,0.05)',
               }}
             >
@@ -187,7 +188,7 @@ export const Add: React.FC<AddProps> = ({
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400">BG</label>
                 <ColorPicker
-                  value={backgroundColor}
+                  value={backgroundColor || '#ffffff'}
                   onChange={setBackgroundColor}
                   disabled={isProcessing || isExporting}
                   size="md"
@@ -195,9 +196,9 @@ export const Add: React.FC<AddProps> = ({
               </div>
 
               <IconButton
-                onClick={() => setBackgroundColor('#ffffff')}
+                onClick={() => setBackgroundColor(null)}
                 disabled={isProcessing || isExporting}
-                ariaLabel="Reset background to white"
+                ariaLabel="Remove background (make transparent)"
                 size="md"
                 variant="standard"
                 className="flex-shrink-0"

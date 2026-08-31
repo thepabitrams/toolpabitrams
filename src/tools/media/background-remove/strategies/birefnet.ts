@@ -6,27 +6,12 @@ import type { ModelStrategy } from './base';
 export const birefnet: ModelStrategy = {
   id: 'birefnet',
   name: 'BiRefNet',
-  license: 'MIT ✅',
-  size: '94 MB',
-  description: 'Highest quality, MIT licensed',
 
-    run: async (file: File, onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void): Promise<Blob> => {
-    
+  run: async (file: File, onProgress: (progress: number, speed: number, loaded?: number, total?: number) => void): Promise<Blob> => {
     onProgress(10, 0, 0, 0);
 
     try {
-      const pipe = await pipeline('image-segmentation', 'studioludens/birefnet-lite-512', {
-      progress_callback: (info: any) => {
-      if (info.status === 'downloading') {
-         const percent = Math.round((info.progress || 0) * 100);
-         const speed = (info.speed || 0) / (1024 * 1024); // MB/s
-         const loaded = (info.loaded || 0) / (1024 * 1024); // MB
-         const total = (info.total || 0) / (1024 * 1024); // MB
-    
-         onProgress(percent, speed, loaded, total);
-          }
-        },
-      });
+      const pipe = await pipeline('image-segmentation', 'studioludens/birefnet-lite-512', { dtype: 'fp32' });
       onProgress(60, 0, 0, 0);
 
       const url = URL.createObjectURL(file);
@@ -34,7 +19,6 @@ export const birefnet: ModelStrategy = {
       URL.revokeObjectURL(url);
       onProgress(85, 0, 0, 0);
 
-      // Typical pipeline output: [{ mask, score, label }, ...]
       const candidateMask = output?.[0]?.mask;
       if (!candidateMask) {
         console.error('[BiRefNet] Pipeline returned no mask. Full output:', output);
@@ -50,9 +34,7 @@ export const birefnet: ModelStrategy = {
       const blob = await applyMaskToImage(file, maskImageData);
       onProgress(100, 0, 0, 0);
 
-      
       return blob;
-
     } catch (error) {
       console.error('[BiRefNet] Error:', error);
       throw error;
@@ -60,20 +42,17 @@ export const birefnet: ModelStrategy = {
   },
 };
 
-// ─── Normalize mask candidate into ImageData sized to original image ──────────────────────
 async function normalizeMaskToImageData(candidate: any, file: File): Promise<ImageData> {
   const img = await loadImageFromFile(file);
   const targetW = img.width;
   const targetH = img.height;
 
-  // If already ImageData
   if (candidate instanceof ImageData) {
     return (candidate.width === targetW && candidate.height === targetH)
       ? candidate
       : resizeImageDataNearest(candidate, targetW, targetH);
   }
 
-  // If candidate is canvas or image element
   if (candidate instanceof HTMLCanvasElement) {
     const ctx = candidate.getContext('2d')!;
     const src = ctx.getImageData(0, 0, candidate.width, candidate.height);
@@ -92,7 +71,6 @@ async function normalizeMaskToImageData(candidate: any, file: File): Promise<Ima
       : resizeImageDataNearest(src, targetW, targetH);
   }
 
-  // If candidate is a data URL (base64 PNG)
   if (typeof candidate === 'string' && candidate.startsWith('data:image')) {
     const imgEl = await loadImageFromUrl(candidate);
     const c = document.createElement('canvas');
@@ -105,20 +83,17 @@ async function normalizeMaskToImageData(candidate: any, file: File): Promise<Ima
       : resizeImageDataNearest(src, targetW, targetH);
   }
 
-  // NEW: Handle _RawImage-like objects: { data: Uint8ClampedArray, width, height, channels }
   if (candidate && typeof candidate === 'object' && candidate.data && candidate.width && candidate.height) {
     const w = candidate.width;
     const h = candidate.height;
     const ch = candidate.channels ?? 1;
     const raw = candidate.data;
 
-    // If it's already an RGBA buffer and matches size, wrap directly
     if (ch === 4 && raw.length === w * h * 4) {
       const src = new ImageData(new Uint8ClampedArray(raw), w, h);
       return (w === targetW && h === targetH) ? src : resizeImageDataNearest(src, targetW, targetH);
     }
 
-    // If single-channel or multi-channel not RGBA, expand to RGBA
     if ((ch === 1 && raw.length === w * h) || (raw.length === w * h * ch)) {
       const rgba = new Uint8ClampedArray(w * h * 4);
       if (ch === 1) {
@@ -131,10 +106,8 @@ async function normalizeMaskToImageData(candidate: any, file: File): Promise<Ima
           rgba[j + 3] = 255;
         }
       } else {
-        // If candidate has channels >1 but not 4, take first channel as mask
-        const channelStride = w * h;
         for (let i = 0; i < w * h; ++i) {
-          const v = raw[i]; // default fallback
+          const v = raw[i];
           const j = i * 4;
           rgba[j + 0] = v;
           rgba[j + 1] = v;
@@ -146,21 +119,18 @@ async function normalizeMaskToImageData(candidate: any, file: File): Promise<Ima
       return (w === targetW && h === targetH) ? src : resizeImageDataNearest(src, targetW, targetH);
     }
 
-    // If we reach here, log and continue to other handlers
     console.warn('[BiRefNet] Candidate looked like RawImage but had unexpected layout:', candidate);
   }
 
-  // Otherwise, try to extract tensor-like info (handles proxies, ort_tensor, dims/data, arrays)
   const info = extractTensorInfo(candidate);
   if (!info) {
     console.error('[BiRefNet] Unrecognized mask candidate format:', candidate);
     throw new Error('Unrecognized mask format');
   }
 
-  const raw = await info.getData(); // TypedArray or nested arrays
+  const raw = await info.getData();
   const shape = Array.isArray(info.shape) ? info.shape.slice() : [];
 
-  // Normalize raw to Float32Array
   let flat: Float32Array;
   if (Array.isArray(raw)) {
     flat = new Float32Array(flattenArray(raw));
@@ -174,24 +144,33 @@ async function normalizeMaskToImageData(candidate: any, file: File): Promise<Ima
     throw new Error('Unsupported raw tensor data format');
   }
 
-  // Interpret dims: common shapes [B,C,H,W], [C,H,W], [B,H,W], [H,W]
-  let B = 1, C = 1, H = 0, W = 0;
+  let C = 1, H = 0, W = 0;
   if (shape.length === 4) {
-    [B, C, H, W] = shape;
+    [, C, H, W] = shape;
   } else if (shape.length === 3) {
-    if (shape[0] === 1) { B = 1; C = 1; H = shape[1]; W = shape[2]; }
-    else { B = 1; C = shape[0]; H = shape[1]; W = shape[2]; }
+    if (shape[0] === 1) {
+      C = 1;
+      H = shape[1];
+      W = shape[2];
+    } else {
+      C = shape[0];
+      H = shape[1];
+      W = shape[2];
+    }
   } else if (shape.length === 2) {
-    H = shape[0]; W = shape[1]; C = 1; B = 1;
+    H = shape[0];
+    W = shape[1];
+    C = 1;
   } else {
     const approx = Math.round(Math.sqrt(flat.length));
-    H = approx; W = approx; C = 1; B = 1;
+    H = approx;
+    W = approx;
+    C = 1;
     console.warn('[BiRefNet] Fallback inferred dims HxW:', H, W);
   }
 
   if (H === 0 || W === 0) throw new Error('Invalid mask dimensions');
 
-  // Collapse channels to single-channel mask (mean across channels)
   const pixelCount = H * W;
   const mask = new Uint8ClampedArray(pixelCount);
 
@@ -220,7 +199,6 @@ async function normalizeMaskToImageData(candidate: any, file: File): Promise<Ima
     }
   }
 
-  // Build RGBA ImageData (R/G/B = mask, A = 255)
   const rgba = new Uint8ClampedArray(pixelCount * 4);
   for (let i = 0; i < pixelCount; ++i) {
     const m = mask[i];
@@ -235,16 +213,13 @@ async function normalizeMaskToImageData(candidate: any, file: File): Promise<Ima
   return (W === targetW && H === targetH) ? srcImageData : resizeImageDataNearest(srcImageData, targetW, targetH);
 }
 
-// ─── Extract tensor info from various wrappers ──────────────────────
 function extractTensorInfo(candidate: any): { shape: number[]; getData: () => Promise<any> } | null {
   if (!candidate) return null;
 
-  // 1) High-level tensor-like with .shape and .array() or .data
   if (candidate.shape && (typeof candidate.array === 'function' || candidate.data)) {
     return { shape: candidate.shape, getData: async () => candidate.data ?? await candidate.array() };
   }
 
-  // 2) ONNX Runtime proxy: candidate.ort_tensor
   if (candidate.ort_tensor) {
     const ort = candidate.ort_tensor;
     if (ort.dims && (ort.data || typeof ort.dataSync === 'function')) {
@@ -252,12 +227,10 @@ function extractTensorInfo(candidate: any): { shape: number[]; getData: () => Pr
     }
   }
 
-  // 3) Plain object with dims/data
   if (candidate.dims && candidate.data) {
     return { shape: candidate.dims, getData: async () => candidate.data };
   }
 
-  // 4) Nested search
   if (typeof candidate === 'object') {
     for (const k of Object.keys(candidate)) {
       const nested = candidate[k];
@@ -271,7 +244,6 @@ function extractTensorInfo(candidate: any): { shape: number[]; getData: () => Pr
   return null;
 }
 
-// ─── Utilities ──────────────────────
 function flattenArray(arr: any[]): number[] {
   const out: number[] = [];
   const stack = [...arr];
@@ -320,7 +292,6 @@ function resizeImageDataNearest(src: ImageData, targetW: number, targetH: number
   return tCtx.getImageData(0, 0, targetW, targetH);
 }
 
-// ─── Apply mask to original image ──────────────────────
 async function applyMaskToImage(file: File, maskData: ImageData): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -337,20 +308,18 @@ async function applyMaskToImage(file: File, maskData: ImageData): Promise<Blob> 
       const imageData = ctx.getImageData(0, 0, img.width, img.height);
       const data = imageData.data;
 
-      // Ensure maskData matches image size
       let mask = maskData;
       if (maskData.width !== img.width || maskData.height !== img.height) {
         mask = resizeImageDataNearest(maskData, img.width, img.height);
       }
       const maskBuffer = mask.data;
 
-      // Apply mask: replace alpha channel with mask value (use R channel)
       for (let y = 0; y < img.height; ++y) {
         for (let x = 0; x < img.width; ++x) {
           const idx = y * img.width + x;
           const imgOffset = idx * 4;
           const maskOffset = idx * 4;
-          const maskVal = maskBuffer[maskOffset]; // 0..255
+          const maskVal = maskBuffer[maskOffset];
           const alpha = maskVal / 255;
           data[imgOffset + 3] = Math.round(alpha * 255);
         }
