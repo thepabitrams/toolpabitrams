@@ -65,32 +65,32 @@ This hierarchy prevents circular dependencies and keeps the codebase predictable
 ### Prerequisites
 
 - Node.js 18 or later
-- npm or yarn
+- pnpm 7 or later
 
 ### Installation
 
 ```bash
 git clone https://github.com/thepabitrams/toolpabitrams.git
 cd toolpabitrams
-npm install
+pnpm install
 ```
 
 ### Development
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ### Production Build
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 ### Preview Production Build
 
 ```bash
-npm run preview
+pnpm run preview
 ```
 
 ---
