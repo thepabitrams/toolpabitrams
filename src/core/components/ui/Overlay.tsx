@@ -1,5 +1,5 @@
 // core/motion/components/overlay.tsx
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Motion } from '../../motion/motion';
 import { zoomIn } from '../../motion/presets/zoomIn';
@@ -10,65 +10,53 @@ interface OverlayProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  containerSelector?: string;
 }
 
-export function Overlay({
-  isOpen,
-  onClose,
-  children,
-  containerSelector = '[data-tool-container]'
-}: OverlayProps) {
-  const [isExiting, setIsExiting] = React.useState(false);
-  const [shouldRender, setShouldRender] = React.useState(false);
-  const [mounted, setMounted] = React.useState(false);
-  const [containerRect, setContainerRect] = React.useState<DOMRect | null>(null);
+export function Overlay({ isOpen, onClose, children }: OverlayProps) {
+  const [isExiting, setIsExiting] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const updateContainerRect = useCallback(() => {
-    const container = document.querySelector(containerSelector) as HTMLElement;
-    if (container) {
-      const rect = container.getBoundingClientRect();
-      setContainerRect(rect);
-    } else {
-      const fallback = document.querySelector('main') as HTMLElement;
-      if (fallback) {
-        const rect = fallback.getBoundingClientRect();
-        setContainerRect(rect);
-      } else {
-        setContainerRect(null);
-      }
-    }
-  }, [containerSelector]);
-
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
       setIsExiting(false);
-      updateContainerRect();
-
-      const handleUpdate = () => updateContainerRect();
-      window.addEventListener('scroll', handleUpdate, true);
-      window.addEventListener('resize', handleUpdate);
-
-      return () => {
-        window.removeEventListener('scroll', handleUpdate, true);
-        window.removeEventListener('resize', handleUpdate);
-      };
     } else if (shouldRender) {
       setIsExiting(true);
       const timer = setTimeout(() => {
         setShouldRender(false);
         setIsExiting(false);
-        setContainerRect(null);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, shouldRender, updateContainerRect]);
+  }, [isOpen, shouldRender]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      return () => {
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+      };
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, onClose]);
 
   if (!mounted || !shouldRender) return null;
 
@@ -77,32 +65,16 @@ export function Overlay({
     ? { opacity: 1, transform: 'scale(1)' }
     : { opacity: 0, transform: 'scale(0.95)' };
 
-  const overlayStyles: React.CSSProperties = containerRect ? {
-    position: 'fixed',
-    top: containerRect.top,
-    left: containerRect.left,
-    width: containerRect.width,
-    height: containerRect.height,
-    zIndex: 50,
-    backgroundColor: '#f9fafb',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    borderRadius: 'inherit',
-  } : {
+  const isDark = document.documentElement.classList.contains('dark');
+  const overlayStyles: React.CSSProperties = {
     position: 'fixed',
     inset: 0,
     zIndex: 50,
-    backgroundColor: '#f9fafb',
+    backgroundColor: isDark ? '#030712' : '#f9fafb',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
   };
-
-  const isDark = document.documentElement.classList.contains('dark');
-  if (isDark) {
-    overlayStyles.backgroundColor = '#030712';
-  }
 
   return createPortal(
     <div style={overlayStyles}>
