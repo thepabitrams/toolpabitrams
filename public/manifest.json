@@ -70,5 +70,11 @@
     "name": "Wallpaper",
     "description": "Create solid color wallpapers in any size and format.",
     "category": "personalisation"
+  },
+  {
+    "id": "bulletin-board",
+    "name": "Bulletin Board",
+    "description": "Daily task board with priority and check-in",
+    "category": "productivity"
   }
 ]

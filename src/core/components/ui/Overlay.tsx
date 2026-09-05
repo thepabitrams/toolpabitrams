@@ -1,6 +1,5 @@
 // core/motion/components/overlay.tsx
-
-import React from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Motion } from '../../motion/motion';
 import { zoomIn } from '../../motion/presets/zoomIn';
@@ -11,12 +10,35 @@ interface OverlayProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  containerSelector?: string;
 }
 
-export function Overlay({ isOpen, onClose, children }: OverlayProps) {
+export function Overlay({
+  isOpen,
+  onClose,
+  children,
+  containerSelector = '[data-tool-container]'
+}: OverlayProps) {
   const [isExiting, setIsExiting] = React.useState(false);
   const [shouldRender, setShouldRender] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
+  const [containerRect, setContainerRect] = React.useState<DOMRect | null>(null);
+
+  const updateContainerRect = useCallback(() => {
+    const container = document.querySelector(containerSelector) as HTMLElement;
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      setContainerRect(rect);
+    } else {
+      const fallback = document.querySelector('main') as HTMLElement;
+      if (fallback) {
+        const rect = fallback.getBoundingClientRect();
+        setContainerRect(rect);
+      } else {
+        setContainerRect(null);
+      }
+    }
+  }, [containerSelector]);
 
   React.useEffect(() => {
     setMounted(true);
@@ -27,29 +49,67 @@ export function Overlay({ isOpen, onClose, children }: OverlayProps) {
     if (isOpen) {
       setShouldRender(true);
       setIsExiting(false);
+      updateContainerRect();
+
+      const handleUpdate = () => updateContainerRect();
+      window.addEventListener('scroll', handleUpdate, true);
+      window.addEventListener('resize', handleUpdate);
+
+      return () => {
+        window.removeEventListener('scroll', handleUpdate, true);
+        window.removeEventListener('resize', handleUpdate);
+      };
     } else if (shouldRender) {
       setIsExiting(true);
       const timer = setTimeout(() => {
         setShouldRender(false);
         setIsExiting(false);
+        setContainerRect(null);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, shouldRender]);
+  }, [isOpen, shouldRender, updateContainerRect]);
 
   if (!mounted || !shouldRender) return null;
 
   const preset = isExiting ? zoomOut : zoomIn;
   const initialStyle = isExiting
     ? { opacity: 1, transform: 'scale(1)' }
-    : { opacity: 0, transform: 'scale(0.5)' };
+    : { opacity: 0, transform: 'scale(0.95)' };
+
+  const overlayStyles: React.CSSProperties = containerRect ? {
+    position: 'fixed',
+    top: containerRect.top,
+    left: containerRect.left,
+    width: containerRect.width,
+    height: containerRect.height,
+    zIndex: 50,
+    backgroundColor: '#f9fafb',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    borderRadius: 'inherit',
+  } : {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 50,
+    backgroundColor: '#f9fafb',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  };
+
+  const isDark = document.documentElement.classList.contains('dark');
+  if (isDark) {
+    overlayStyles.backgroundColor = '#030712';
+  }
 
   return createPortal(
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
+    <div style={overlayStyles}>
       <Motion
         preset={preset}
         as="div"
-        className="w-full h-full bg-white dark:bg-gray-900 overflow-hidden flex flex-col"
+        className="w-full h-full flex flex-col"
         style={initialStyle}
       >
         <div className="flex justify-end p-4 flex-shrink-0">

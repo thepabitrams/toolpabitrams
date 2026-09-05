@@ -2,7 +2,6 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { Header } from '@/core/components/layout/Header';
 import { Footer } from '@/core/components/layout/Footer';
-// ❌ DELETED: import { AdBanner } from '@/core/components/layout/AdBanner';
 import { ToolViewer } from '@/core/components/layout/ToolViewer';
 import { Container } from '@/core/components/ui/Container';
 import { useToolStore } from '@/core/store/toolStore';
@@ -21,9 +20,11 @@ export function ToolPage() {
     <ToolProvider toolId={toolId}>
       <div className="min-h-screen flex flex-col">
         <Header variant="list" toolName={toolName} />
-        <main className="flex-1 py-8">
+        <main
+          className="flex-1 py-8"
+          data-tool-container
+        >
           <Container>
-            {/* ❌ DELETED: <AdBanner /> */}
             <div className="mt-4">
               <ToolViewer />
             </div>
