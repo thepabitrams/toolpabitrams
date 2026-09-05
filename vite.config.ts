@@ -23,15 +23,11 @@ function findToolFolders(dir: string): string[] {
 }
 
 export default defineConfig({
-  define: {
-    __dirname: '""',
-  },
-
   plugins: [
     {
       name: 'auto-generate-tool-manifest',
       buildStart() {
-        const toolsDir = path.resolve(__dirname, 'src/tools');
+        const toolsDir = path.resolve(import.meta.dirname, 'src/tools');
         if (!fs.existsSync(toolsDir)) {
           return;
         }
@@ -62,7 +58,7 @@ export default defineConfig({
           };
         });
 
-        const outputPath = path.resolve(__dirname, 'public/manifest.json');
+        const outputPath = path.resolve(import.meta.dirname, 'public/manifest.json');
         fs.writeFileSync(outputPath, JSON.stringify(manifest, null, 2));
       },
     },
@@ -115,7 +111,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
 
