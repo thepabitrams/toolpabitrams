@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
-import { Stagger } from '@/core/motion/core/Stagger'; // ✅ Correct path
+import { Stagger } from '@/core/motion/core/Stagger';
 import { Toast } from './Toast';
 import { useToast } from '@/core/hooks/useToast';
 

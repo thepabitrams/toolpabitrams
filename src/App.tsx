@@ -7,7 +7,6 @@ import { useFileStore } from '@/core/store/fileStore';
 import { ToastContainer } from '@/core/components/ui/toast';
 import { useToast } from '@/core/hooks/useToast';
 
-// ─── Wrapper component to listen to route changes ───
 function RouteChangeListener({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { clearAll } = useToast();

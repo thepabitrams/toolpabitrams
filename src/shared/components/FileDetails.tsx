@@ -29,7 +29,7 @@ export const FileDetails: React.FC<FileDetailsProps> = ({
     unit: 'px',
   });
   const [loading, setLoading] = useState(false);
-  const { readFile } = useFileStore(); // 👈 USE readFile (native File)
+  const { readFile } = useFileStore();
 
   useEffect(() => {
     if (!file) {
@@ -43,14 +43,12 @@ export const FileDetails: React.FC<FileDetailsProps> = ({
     const fetchMetadata = async () => {
       setLoading(true);
       try {
-        // 1️⃣ Get the native File directly from OPFS
         const fileObj = await readFile(file.storageKey);
         if (!fileObj || !isMounted) {
           setLoading(false);
           return;
         }
 
-        // 2️⃣ Use the kitchen service to extract metadata
         const meta = await extractImageMetadata(fileObj);
         
         if (isMounted) {
@@ -75,7 +73,6 @@ export const FileDetails: React.FC<FileDetailsProps> = ({
     };
   }, [file, readFile]);
 
-  // ─── The Details Content (100% UNCHANGED) ──────────────────
   const renderDetails = () => {
     if (!file) {
       return (

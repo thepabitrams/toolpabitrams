@@ -4,12 +4,11 @@ const cx = (...classes: (string | boolean | undefined | null)[]) =>
   classes.filter(Boolean).join(' ');
 
 const textareaMotion = {
-  /** Container classes – applied directly to the <textarea> – same as input container */
   container: (error?: boolean, className?: string) =>
     cx(
       'flex items-center gap-2 rounded-xl border bg-white dark:bg-gray-800 px-3 py-2.5',
       'transition-all duration-200 ease-out',
-      'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20', // focus (not focus-within)
+      'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
       'hover:border-gray-400 dark:hover:border-gray-500',
       error
         ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
@@ -17,7 +16,6 @@ const textareaMotion = {
       className
     ),
 
-  /** Field classes – same as input field */
   field: (className?: string) =>
     cx(
       'w-full bg-transparent outline-none text-base text-gray-900 dark:text-white',
@@ -28,7 +26,6 @@ const textareaMotion = {
       className
     ),
 
-  /** Textarea‑specific: resize and min-height */
   resize: 'resize-none min-h-[48px]',
 };
 

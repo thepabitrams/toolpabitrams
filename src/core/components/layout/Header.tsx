@@ -21,12 +21,10 @@ export function Header({ variant, toolName = '' }: HeaderProps) {
   const toggleRef = useRef<HTMLDivElement>(null);
   const { theme, toggle } = useThemeStore();
 
-  // Close drawer on route change
   useEffect(() => {
     if (drawerOpen) setDrawerOpen(false);
   }, [location.pathname]);
 
-  // Close drawer on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (!drawerOpen) return;
@@ -83,7 +81,6 @@ export function Header({ variant, toolName = '' }: HeaderProps) {
         </IconButton>
       </Container>
 
-      {/* 🔥 DRAWER — Now powered by Motion! */}
       {showDrawer && (
         <Motion
           preset={drawerMotion}

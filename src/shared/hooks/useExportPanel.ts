@@ -28,7 +28,6 @@ export const useExportPanel = ({ file, variant }: useExportPanelOptions): UseExp
     setError(null);
 
     try {
-      // ⭐ Read from OPFS
       const blob = await read(file.name);
       if (!blob) throw new Error('Failed to read file');
 

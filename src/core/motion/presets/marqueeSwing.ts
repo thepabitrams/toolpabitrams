@@ -1,6 +1,6 @@
 // core/motion/presets/marqueeSwing.ts
 export const marqueeSwing = {
-  name: 'marquee-swing', // 👈 USE DASHES
+  name: 'marquee-swing',
   keyframes: `
     0% {
       transform: translateX(0);

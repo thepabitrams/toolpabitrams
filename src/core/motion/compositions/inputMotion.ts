@@ -3,10 +3,8 @@ const cx = (...classes: (string | boolean | undefined | null)[]) =>
   classes.filter(Boolean).join(' ');
 
 const inputMotion = {
-  /** Wrapper layout (label + container) */
   wrapper: 'flex flex-col gap-1.5 w-full',
 
-  /** Container classes – border, bg, hover, focus ring, error state */
   container: (error?: boolean, className?: string) =>
     cx(
       'flex items-center gap-2 rounded-xl border bg-white dark:bg-gray-800 px-3 py-2.5',
@@ -19,7 +17,6 @@ const inputMotion = {
       className
     ),
 
-  /** Input field – text, placeholder, selection, disabled */
   field: (className?: string) =>
     cx(
       'w-full bg-transparent outline-none text-base text-gray-900 dark:text-white',

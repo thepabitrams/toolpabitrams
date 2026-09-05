@@ -7,7 +7,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   className?: string;
   onClick?: () => void;
-  hover?: boolean; // 👈 Explicitly define it so we can filter it
+  hover?: boolean;
   preset?: typeof cardMotion;
 }
 
@@ -15,9 +15,9 @@ export const Card = ({
   children,
   className = '',
   onClick,
-  hover, // 👈 Explicitly destructure (we won't use it yet, but we capture it)
+  hover,
   preset = cardMotion,
-  ...rest // 👈 Rest now contains ONLY valid HTML attributes
+  ...rest
 }: CardProps) => {
   return (
     <Motion
@@ -31,7 +31,7 @@ export const Card = ({
         ${className}
       `}
       onClick={onClick}
-      {...rest} // 👈 `hover` is NOT in `rest` anymore, so it won't reach the DOM!
+      {...rest}
     >
       {children}
     </Motion>

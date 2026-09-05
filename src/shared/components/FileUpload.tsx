@@ -9,9 +9,9 @@ import type { FileRef } from '@/core/store/fileStore';
 interface FileUploadProps {
   file: FileRef | null;
   variant: 'single' | 'multiple';
-  accept: Record<string, string[]>; // 👈 PASS FROM TOOL
-  label: string;                    // 👈 PASS FROM TOOL
-  extensions?: string;              // 👈 PASS FROM TOOL (optional)
+  accept: Record<string, string[]>; 
+  label: string;                    
+  extensions?: string;              
   isLoading?: boolean;
   onUpload: (files: File[]) => void;
   onRemove: () => void;

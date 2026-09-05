@@ -3,11 +3,6 @@ import { create } from 'zustand';
 import { write, read, remove, listAll, readFile as opfsReadFile } from '@/core/services/opfs';
 import { saveCatalog, loadCatalog } from '@/core/services/indexeddb';
 
-/**
- * FileRef: The lightweight metadata entry for each file.
- * This is what lives in Zustand and IndexedDB.
- * The actual file bytes stay in OPFS.
- */
 export interface FileRef {
   id: string;
   toolId: string;
@@ -32,23 +27,17 @@ interface FileStore {
   readFile: (storageKey: string) => Promise<File | null>;
   remove: (name: string) => Promise<void>;
   clear: () => Promise<void>;
-  promote: (fileName?: string, targetToolId?: string) => Promise<void>; // 👈 CHANGED
+  promote: (fileName?: string, targetToolId?: string) => Promise<void>;
   findDescendants: (parentId: string) => FileRef[];
   garbageCollect: () => Promise<void>;
 }
 
-// ================================================================
-// 🧠 GLOBAL CONTEXT SWITCH
-// ================================================================
 let __currentToolId: string = 'default';
 
 export const setCurrentToolId = (id: string) => {
   __currentToolId = id;
 };
 
-// ================================================================
-// 🏷️ Auto-increment naming (SCOPED BY TOOL)
-// ================================================================
 function getNextName(existing: FileRef[], prefix: string): string {
   const numbers = existing
     .filter(f => f.name.startsWith(prefix))
@@ -66,9 +55,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
   original: [],
   process: [],
 
-  // ============================================================
-  // 1. INIT
-  // ============================================================
   init: async () => {
     const data = await loadCatalog();
     if (data) {
@@ -80,9 +66,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
     await get().garbageCollect();
   },
 
-  // ============================================================
-  // 2. UPLOAD
-  // ============================================================
   upload: async (files) => {
     const toolId = __currentToolId;
     const newRefs: FileRef[] = [];
@@ -109,9 +92,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
     await syncToDB(get().original, get().process);
   },
 
-  // ============================================================
-  // 3. SAVE
-  // ============================================================
   save: async (files, parentId) => {
     const toolId = __currentToolId;
     const newRefs: FileRef[] = [];
@@ -139,27 +119,18 @@ export const useFileStore = create<FileStore>((set, get) => ({
     await syncToDB(get().original, get().process);
   },
 
-  // ============================================================
-  // 4. GET
-  // ============================================================
   get: (name) => {
     const toolId = __currentToolId;
     return get().original.find(f => f.name === name && f.toolId === toolId) ||
            get().process.find(f => f.name === name && f.toolId === toolId);
   },
 
-  // ============================================================
-  // 5. LIST
-  // ============================================================
   list: (type) => {
     const toolId = __currentToolId;
     const array = type === 'original' ? get().original : get().process;
     return array.filter(f => f.toolId === toolId);
   },
 
-  // ============================================================
-  // 6. READ
-  // ============================================================
   read: async (name) => {
     const ref = get().get(name);
     if (!ref) return null;
@@ -167,9 +138,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
     return new Blob([bytes], { type: ref.type });
   },
 
-  // ============================================================
-  // 6.5 READ FILE (RETURNS NATIVE FILE)
-  // ============================================================
   readFile: async (storageKey: string) => {
     try {
       return await opfsReadFile(storageKey);
@@ -179,9 +147,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
     }
   },
 
-  // ============================================================
-  // 7. FIND DESCENDANTS
-  // ============================================================
   findDescendants: (parentId) => {
     const result: FileRef[] = [];
     const process = get().process;
@@ -197,9 +162,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
     return result;
   },
 
-  // ============================================================
-  // 8. REMOVE
-  // ============================================================
   remove: async (name) => {
     const toolId = __currentToolId;
     const ref = get().original.find(f => f.name === name && f.toolId === toolId) ||
@@ -228,9 +190,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
     await syncToDB(get().original, get().process);
   },
 
-  // ============================================================
-  // 9. CLEAR
-  // ============================================================
   clear: async () => {
     const toolId = __currentToolId;
     const myOriginals = get().original.filter(f => f.toolId === toolId);
@@ -247,20 +206,15 @@ export const useFileStore = create<FileStore>((set, get) => ({
     await syncToDB(get().original, get().process);
   },
 
-  // ============================================================
-  // 10. PROMOTE (Moves process files to target tool's original) 🔥 UPDATED
-  // ============================================================
   promote: async (fileName?: string, targetToolId?: string) => {
     const sourceToolId = __currentToolId;
     const targetId = targetToolId || sourceToolId;
 
     const { process, original } = get();
 
-    // Get source tool's process files
     const myProcess = process.filter(f => f.toolId === sourceToolId);
     if (myProcess.length === 0) return;
 
-    // Which files to promote?
     const filesToPromote = fileName
       ? myProcess.filter(f => f.name === fileName)
       : myProcess;
@@ -270,13 +224,11 @@ export const useFileStore = create<FileStore>((set, get) => ({
       return;
     }
 
-    // Get target tool's existing originals for naming
     const targetOriginals = original.filter(f => f.toolId === targetId);
     let nextIndex = targetOriginals.length > 0
       ? Math.max(...targetOriginals.map(f => parseInt(f.name.replace('original', ''), 10)))
       : 0;
 
-    // Create new original entries with TARGET tool ID
     const newOriginals = filesToPromote.map((ref) => ({
       ...ref,
       id: crypto.randomUUID(),
@@ -286,7 +238,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
       createdAt: Date.now(),
     }));
 
-    // Move: remove from source process, add to target original
     const movedIds = new Set(filesToPromote.map(f => f.id));
     set((state) => ({
       original: [...state.original, ...newOriginals],
@@ -295,9 +246,6 @@ export const useFileStore = create<FileStore>((set, get) => ({
     await syncToDB(get().original, get().process);
   },
 
-  // ============================================================
-  // 11. GARBAGE COLLECTION
-  // ============================================================
   garbageCollect: async () => {
     const state = get();
     const validKeys = new Set([

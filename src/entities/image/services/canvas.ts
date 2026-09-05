@@ -7,14 +7,6 @@ export interface CropAreaPixels {
   height: number;
 }
 
-/**
- * Crops an image Blob using Canvas API.
- * 
- * @param blob - The original image blob
- * @param cropArea - The pixel-perfect area to cut out { x, y, width, height }
- * @param rotation - Rotation in degrees (optional, defaults to 0)
- * @returns Promise<Blob> - The cropped image blob
- */
 export async function cropImage(
   blob: Blob,
   cropArea: CropAreaPixels,

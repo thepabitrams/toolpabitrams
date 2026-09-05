@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useFileStore } from '@/core/store/fileStore';
-import { Card } from '@/core/components/ui/Card'; // ✅ Import Card
-import { Container } from '@/core/components/ui/Container';
+import { Card } from '@/core/components/ui/Card';
 import type { FileRef } from '@/core/store/fileStore';
+import { Container } from '@/core/components/ui/Container';
 
 interface FilePreviewProps {
   file: FileRef | null;
@@ -59,7 +59,6 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
     };
   }, [file, read]);
 
-  // ─── The Preview Content ────────────────────────────────────
   const renderPreview = () => {
     if (!file) {
       return (
@@ -107,7 +106,6 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
     );
   };
 
-  // ✅ Wrap in Card
   return (
     <Card className="overflow-hidden p-0 flex-1">
       <Container 

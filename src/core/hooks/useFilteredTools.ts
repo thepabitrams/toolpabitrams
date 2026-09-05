@@ -19,17 +19,14 @@ export function useFilteredTools(
   return useMemo(() => {
     let result = tools;
 
-    // 🔥 Filter by category
     if (filters.category) {
       result = result.filter((tool) => tool.category === filters.category);
     }
 
-    // 🔥 Filter by input
     if (filters.input) {
       result = result.filter((tool) => tool.input === filters.input);
     }
 
-    // Apply search
     if (deferredQuery.trim()) {
       const lower = deferredQuery.toLowerCase();
       result = result.filter(
@@ -39,7 +36,6 @@ export function useFilteredTools(
       );
     }
 
-    // Sort: Favorites → Most Used → Alphabetical
     return result.sort((a, b) => {
       const aFav = favorites.includes(a.id) ? 1 : 0;
       const bFav = favorites.includes(b.id) ? 1 : 0;

@@ -1,17 +1,4 @@
 // src/core/store/toolStore.ts
-/**
- * 🏪 ToolStore — Zustand Store for Tool Data
- *
- * Manages:
- * - Favorites (tools the user has starred)
- * - Usage counts (how many times each tool is used)
- * - Current tool (for resume-on-refresh)
- *
- * Persistence:
- * - Uses IndexedDB via toolDB (not localStorage)
- * - Auto-saves on every state change
- * - Auto-loads on app initialization
- */
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
@@ -21,11 +8,7 @@ import {
   loadToolData,
   clearToolData,
   type ToolData,
-} from '@/core/services/toolDB'; // ✅ UPDATED: lowercase 'toolDB'
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Custom Storage Adapter (Zustand ↔ IndexedDB)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+} from '@/core/services/toolDB';
 
 const toolIndexedDBStorage = {
   getItem: async (name: string): Promise<string | null> => {
@@ -41,38 +24,25 @@ const toolIndexedDBStorage = {
   },
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Store Interface
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 interface ToolStore {
-  // ── State ──
   favorites: string[];
   usageCounts: Record<string, number>;
   currentTool: Tool | null;
   currentToolId: string | null;
 
-  // ── Actions ──
   toggleFavorite: (toolId: string) => void;
   incrementUsage: (toolId: string) => void;
   setCurrentTool: (tool: Tool | null) => void;
   reset: () => void;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Store Implementation
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 export const useToolStore = create<ToolStore>()(
   persist(
     (set) => ({
-      // ── Initial State ──
       favorites: [],
       usageCounts: {},
       currentTool: null,
       currentToolId: null,
-
-      // ── Actions ──
 
       toggleFavorite: (toolId: string) =>
         set((state) => {
@@ -105,10 +75,8 @@ export const useToolStore = create<ToolStore>()(
         }),
     }),
     {
-      // ── Persist Configuration ──
       name: 'tool-storage',
       storage: createJSONStorage(() => toolIndexedDBStorage),
-      // 🔥 Only persist these fields (exclude currentTool which is a reference)
       partialize: (state) => ({
         favorites: state.favorites,
         usageCounts: state.usageCounts,

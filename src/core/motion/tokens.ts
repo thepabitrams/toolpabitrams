@@ -1,8 +1,8 @@
 // core/motion/tokens.ts
 
-export const duration = 200; // ms
+export const duration = 200;
 
-export const easing = [0.4, 0, 0.2, 1]; // cubic-bezier
+export const easing = [0.4, 0, 0.2, 1];
 
 export const scale = {
   press: 0.97,
@@ -13,9 +13,8 @@ export const scale = {
   listPress: 0.98,
 } as const;
 
-// Helper to generate Tailwind transition class
 export const transitionClass = (properties = 'all') =>
   `transition-${properties} duration-${duration} ease-[cubic-bezier(${easing.join(',')})]`;
-// tokens.ts - add this at the bottom
+
 export const animationClass = (name: string, duration: number, easing: string) =>
   `animate-[${name}_${duration}ms_${easing}]`;

@@ -1,6 +1,4 @@
 // src/entities/image/canvas/crop.ts
-// ONLY function here, types imported
-
 import { CropArea } from '../types/crop';
 
 export async function cropCanvas(

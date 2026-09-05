@@ -58,7 +58,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     setViewMode('months');
   };
 
-  // ─── Smart Navigation ──────────────────────────────────────
   const goToPrev = () => {
     if (viewMode === 'days') {
       if (viewMonth === 1) {
@@ -68,7 +67,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         setViewMonth(viewMonth - 1);
       }
     } else {
-      // months or years view → change year
       setViewYear(viewYear - 1);
     }
   };
@@ -121,7 +119,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     ? `${currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
     : 'Select date';
 
-  // ─── HEADER ────────────────────────────────────────────────
   const renderHeader = () => {
     let centerText = '';
     let centerOnClick = () => {};
@@ -164,7 +161,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     );
   };
 
-  // ─── BODY ──────────────────────────────────────────────────
   const renderBody = () => {
     if (viewMode === 'days') {
       return (
@@ -244,7 +240,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       );
     }
 
-    // years mode
     return (
       <div className="grid grid-cols-4 gap-2">
         {years.map((y) => {

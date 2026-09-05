@@ -2,7 +2,6 @@
 import React from 'react';
 import { injectKeyframes } from './core/injection/keyframes';
 
-// ---------- Types ----------
 interface Preset {
   name: string;
   keyframes: string;
@@ -27,7 +26,6 @@ interface MotionProps {
   children?: React.ReactNode;
 }
 
-// ---------- Core logic ----------
 export function getMotion(
   preset: MotionPreset,
   options?: {
@@ -38,7 +36,6 @@ export function getMotion(
     style?: Record<string, any>;
   }
 ): { className: string; style: Record<string, any> } {
-  // CASE 1: Animation preset
   if (typeof preset === 'object' && preset !== null && 'name' in preset && 'keyframes' in preset) {
     const p = preset as Preset;
     injectKeyframes(p.name, p.keyframes);
@@ -46,10 +43,8 @@ export function getMotion(
     const duration = options?.duration ?? p.duration ?? 200;
     const easing = options?.easing ?? p.easing ?? 'ease';
 
-    // ✅ FIX: Use inline styles for animation, NOT Tailwind class!
     let style = { ...(options?.style || {}) };
     
-    // Apply animation via inline styles
     style = {
       ...style,
       animationName: p.name,
@@ -58,7 +53,6 @@ export function getMotion(
       animationFillMode: 'both',
     };
 
-    // Apply delay if provided
     if (options?.delay !== undefined) {
       style = {
         ...style,
@@ -66,7 +60,6 @@ export function getMotion(
       };
     }
 
-    // Regular className (for layout, colors, etc.)
     let className = options?.className || '';
 
     return {
@@ -75,7 +68,6 @@ export function getMotion(
     };
   }
 
-  // CASE 2: Function composition
   if (typeof preset === 'function') {
     const result = preset();
     const mergedStyle = { ...(result.style || {}), ...(options?.style || {}) };
@@ -85,7 +77,6 @@ export function getMotion(
     };
   }
 
-  // CASE 3: String
   if (typeof preset === 'string') {
     return {
       className: preset + (options?.className ? ` ${options.className}` : ''),
@@ -93,7 +84,6 @@ export function getMotion(
     };
   }
 
-  // CASE 4: Object with className
   if (typeof preset === 'object' && preset !== null && 'className' in preset) {
     const result = preset as { className: string; style?: Record<string, any> };
     const mergedStyle = { ...(result.style || {}), ...(options?.style || {}) };
@@ -109,7 +99,6 @@ export function getMotion(
   };
 }
 
-// ---------- The Motion Component ----------
 export function Motion({
   preset,
   as: Component = 'div',

@@ -22,7 +22,7 @@ export const Select: React.FC<SelectProps> = ({
   className = '',
   ...rest
 }) => {
-  // Inject CSS once for :open pseudo-class
+
   useEffect(() => {
     const styleId = 'select-open-glow';
     if (!document.getElementById(styleId)) {
