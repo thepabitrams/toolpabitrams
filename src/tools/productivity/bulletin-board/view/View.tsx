@@ -11,7 +11,6 @@ export function View() {
 
   const activeTasks = tasks.filter(t => shouldBeActive(t));
 
-  // sort active tasks according to taskOrder
   const sorted = activeTasks.sort((a, b) => {
     const indexA = taskOrder.indexOf(a.id);
     const indexB = taskOrder.indexOf(b.id);
@@ -30,7 +29,7 @@ export function View() {
           <span className="text-xs text-gray-400">{sorted.length} tasks</span>
         </div>
 
-        <Container className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 space-y-3 max-h-[500px] overflow-y-auto">
+        <Container className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto">
           {sorted.length === 0 ? (
             <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
               No active tasks. Add one using the + button above!

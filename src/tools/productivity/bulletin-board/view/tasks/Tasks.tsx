@@ -1,13 +1,16 @@
 // src/tools/productivity/bulletin-board/view/tasks/Tasks.tsx
 import React, { useState } from 'react';
+import { MdDelete, MdEdit } from 'react-icons/md';
+
 import { Card } from '@/core/components/ui/Card';
 import { IconButton } from '@/core/components/ui/IconButton';
+import { useMobile } from '@/core/hooks/useMobile';
+
 import { useTaskStore, Task } from '../../store/taskStore';
 import { Priority } from './Priority';
 import { Notes } from './Notes';
 import { CheckIn } from './CheckIn';
 import { Edit } from './Edit';
-import { MdDelete, MdEdit } from 'react-icons/md';
 
 interface TasksProps {
   task: Task;
@@ -17,6 +20,7 @@ interface TasksProps {
 export function Tasks({ task, index }: TasksProps) {
   const { updateTask, deleteTask } = useTaskStore();
   const [showEdit, setShowEdit] = useState(false);
+  const isMobile = useMobile(768);
 
   const handleDelete = async () => {
     if (confirm(`Move "${task.title}" to trash?`)) {
@@ -48,15 +52,6 @@ export function Tasks({ task, index }: TasksProps) {
 
   const getTypeLabel = () => {
     return task.type === 'permanent' ? 'Permanent' : 'Temporary';
-  };
-
-  const getDateDisplay = () => {
-    const start = formatDate(task.startDate);
-    if (task.type === 'temporary' && task.endDate) {
-      const end = formatDate(task.endDate);
-      return `${start} → ${end}`;
-    }
-    return start;
   };
 
   const getFrequencyDisplay = () => {
@@ -110,10 +105,26 @@ export function Tasks({ task, index }: TasksProps) {
           />
         </div>
 
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-1 border-t border-gray-100 dark:border-gray-700/30">
-          <span className="truncate min-w-[70px]">{getTypeLabel()}</span>
-          <span className="truncate flex-1 text-center px-2">{getDateDisplay()}</span>
-          <span className="truncate min-w-[80px] text-right">{getFrequencyDisplay()}</span>
+        <div className="grid grid-cols-[auto_1fr_auto] gap-x-3 text-xs text-gray-500 dark:text-gray-400 pt-1 border-t border-gray-100 dark:border-gray-700/30">
+          <span className="whitespace-nowrap font-medium">{getTypeLabel()}</span>
+
+          <span className="text-center">
+            {task.type === 'temporary' && task.endDate ? (
+              isMobile ? (
+                <>
+                  {formatDate(task.startDate)} →
+                  <br />
+                  {formatDate(task.endDate)}
+                </>
+              ) : (
+                `${formatDate(task.startDate)} → ${formatDate(task.endDate)}`
+              )
+            ) : (
+              formatDate(task.startDate)
+            )}
+          </span>
+
+          <span className="whitespace-nowrap text-right">{getFrequencyDisplay()}</span>
         </div>
       </Card>
 
