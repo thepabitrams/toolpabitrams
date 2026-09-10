@@ -76,5 +76,11 @@
     "name": "Bulletin Board",
     "description": "Daily task board with priority and check-in",
     "category": "productivity"
+  },
+  {
+    "id": "infinite-type",
+    "name": "Infinite Type",
+    "description": "Endless typing drill with custom character pool",
+    "category": "productivity"
   }
 ]
