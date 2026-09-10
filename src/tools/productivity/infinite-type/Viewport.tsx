@@ -1,5 +1,5 @@
 // src/tools/productivity/infinite-type/Viewport.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import type { Session, Line } from './useInfiniteType';
@@ -25,6 +25,23 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
 }) => {
   const viewportRef = React.useRef<HTMLDivElement>(null);
   const { lines } = state;
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const check = () => {
+      const diff = window.innerHeight - vv.height;
+      setKeyboardOpen(diff > 100);
+    };
+    check();
+    vv.addEventListener('resize', check);
+    vv.addEventListener('scroll', check);
+    return () => {
+      vv.removeEventListener('resize', check);
+      vv.removeEventListener('scroll', check);
+    };
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -53,9 +70,16 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
   useEffect(() => {
     if (!viewportRef.current || !isRunning) return;
     requestAnimationFrame(() => {
-      viewportRef.current!.scrollTop = viewportRef.current!.scrollHeight;
+      if (keyboardOpen) {
+        const activeEl = containerRef.current?.lastElementChild as HTMLElement | null;
+        if (activeEl) {
+          activeEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      } else {
+        viewportRef.current!.scrollTop = viewportRef.current!.scrollHeight;
+      }
     });
-  }, [lines.length, isRunning]);
+  }, [lines.length, isRunning, keyboardOpen, containerRef]);
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
   const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
