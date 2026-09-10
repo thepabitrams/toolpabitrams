@@ -49,8 +49,6 @@ export const InfiniteType: React.FC = () => {
   const resizeWarned = useRef(false);
 
   const activeLineIndex = state.lines.length - 1;
-  const activeLine = state.lines[activeLineIndex];
-  const activeTypedLen = activeLine ? activeLine.typed.length : 0;
 
   const maxChars = useMemo(() => {
     if (containerWidth <= 0 || charWidth <= 0) return 40;
@@ -92,17 +90,10 @@ export const InfiniteType: React.FC = () => {
     if (!inputEl || !containerEl) return;
     const activeEl = containerEl.lastElementChild as HTMLElement | null;
     if (!activeEl) return;
-    const cursorChild = activeEl.children[activeTypedLen] as HTMLElement | undefined;
-    if (cursorChild) {
-      const rect = cursorChild.getBoundingClientRect();
-      inputEl.style.top = `${rect.top}px`;
-      inputEl.style.left = `${rect.left}px`;
-    } else {
-      const rect = activeEl.getBoundingClientRect();
-      inputEl.style.top = `${rect.top}px`;
-      inputEl.style.left = `${rect.left}px`;
-    }
-  }, [activeLineIndex, activeTypedLen, isRunning]);
+    const rect = activeEl.getBoundingClientRect();
+    inputEl.style.top = `${rect.top}px`;
+    inputEl.style.left = `${rect.left}px`;
+  }, [activeLineIndex, isRunning]);
 
   const handleStart = () => {
     let cw = containerWidth;
