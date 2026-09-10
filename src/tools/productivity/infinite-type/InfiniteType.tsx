@@ -48,6 +48,10 @@ export const InfiniteType: React.FC = () => {
   const startWidth = useRef(0);
   const resizeWarned = useRef(false);
 
+  const activeLineIndex = state.lines.length - 1;
+  const activeLine = state.lines[activeLineIndex];
+  const activeTypedLen = activeLine ? activeLine.typed.length : 0;
+
   const maxChars = useMemo(() => {
     if (containerWidth <= 0 || charWidth <= 0) return 40;
     return Math.max(1, Math.floor(containerWidth / charWidth));
@@ -81,6 +85,17 @@ export const InfiniteType: React.FC = () => {
       }
     }
   }, [containerWidth, isRunning, stop, showToast]);
+
+  useEffect(() => {
+    const inputEl = inputRef.current;
+    const containerEl = containerRef.current;
+    if (!inputEl || !containerEl) return;
+    const activeEl = containerEl.lastElementChild as HTMLElement | null;
+    if (!activeEl) return;
+    const rect = activeEl.getBoundingClientRect();
+    inputEl.style.top = `${rect.top}px`;
+    inputEl.style.left = `${rect.left}px`;
+  }, [activeLineIndex, activeTypedLen, isRunning]);
 
   const handleStart = () => {
     let cw = containerWidth;

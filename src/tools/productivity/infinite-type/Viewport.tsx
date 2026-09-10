@@ -1,5 +1,5 @@
 // src/tools/productivity/infinite-type/Viewport.tsx
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import type { Session, Line } from './useInfiniteType';
@@ -25,25 +25,6 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
 }) => {
   const viewportRef = React.useRef<HTMLDivElement>(null);
   const { lines } = state;
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-
-  const activeTypedLen = lines.length > 0 ? lines[lines.length - 1].typed.length : 0;
-
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const check = () => {
-      const diff = window.innerHeight - vv.height;
-      setKeyboardOpen(diff > 100);
-    };
-    check();
-    vv.addEventListener('resize', check);
-    vv.addEventListener('scroll', check);
-    return () => {
-      vv.removeEventListener('resize', check);
-      vv.removeEventListener('scroll', check);
-    };
-  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -68,25 +49,6 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
       document.fonts.ready.then(measureProbe);
     }
   }, [probeRef, onCharWidth]);
-
-  useLayoutEffect(() => {
-    const viewportEl = viewportRef.current;
-    const containerEl = containerRef.current;
-    if (!viewportEl || !containerEl) return;
-    if (!isRunning) return;
-
-    if (keyboardOpen) {
-      const activeEl = containerEl.lastElementChild as HTMLElement | null;
-      if (activeEl) {
-        const elTop = activeEl.offsetTop;
-        const elHeight = activeEl.offsetHeight;
-        const viewportHeight = viewportEl.clientHeight;
-        viewportEl.scrollTop = elTop - (viewportHeight - elHeight) / 2;
-      }
-    } else {
-      viewportEl.scrollTop = viewportEl.scrollHeight;
-    }
-  }, [lines.length, activeTypedLen, isRunning, keyboardOpen, containerRef]);
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
   const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
@@ -161,7 +123,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
         <div
           ref={viewportRef}
           className="relative px-6 py-4 overflow-y-auto h-[400px] font-mono text-lg leading-[46px] bg-white dark:bg-gray-950"
-          style={{ overscrollBehavior: keyboardOpen ? 'contain' : 'auto' }}
+          style={{ overscrollBehavior: 'contain' }}
         >
           <span
             ref={probeRef}
