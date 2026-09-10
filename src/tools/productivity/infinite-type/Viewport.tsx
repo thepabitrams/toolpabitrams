@@ -1,5 +1,5 @@
 // src/tools/productivity/infinite-type/Viewport.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import type { Session, Line } from './useInfiniteType';
@@ -26,6 +26,8 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
   const viewportRef = React.useRef<HTMLDivElement>(null);
   const { lines } = state;
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  const activeTypedLen = lines.length > 0 ? lines[lines.length - 1].typed.length : 0;
 
   useEffect(() => {
     const vv = window.visualViewport;
@@ -67,19 +69,24 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     }
   }, [probeRef, onCharWidth]);
 
-  useEffect(() => {
-    if (!viewportRef.current || !isRunning) return;
-    requestAnimationFrame(() => {
-      if (keyboardOpen) {
-        const activeEl = containerRef.current?.lastElementChild as HTMLElement | null;
-        if (activeEl) {
-          activeEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        }
-      } else {
-        viewportRef.current!.scrollTop = viewportRef.current!.scrollHeight;
+  useLayoutEffect(() => {
+    const viewportEl = viewportRef.current;
+    const containerEl = containerRef.current;
+    if (!viewportEl || !containerEl) return;
+    if (!isRunning) return;
+
+    if (keyboardOpen) {
+      const activeEl = containerEl.lastElementChild as HTMLElement | null;
+      if (activeEl) {
+        const elTop = activeEl.offsetTop;
+        const elHeight = activeEl.offsetHeight;
+        const viewportHeight = viewportEl.clientHeight;
+        viewportEl.scrollTop = elTop - (viewportHeight - elHeight) / 2;
       }
-    });
-  }, [lines.length, isRunning, keyboardOpen, containerRef]);
+    } else {
+      viewportEl.scrollTop = viewportEl.scrollHeight;
+    }
+  }, [lines.length, activeTypedLen, isRunning, keyboardOpen, containerRef]);
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
   const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
