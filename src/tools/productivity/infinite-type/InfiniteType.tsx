@@ -92,9 +92,16 @@ export const InfiniteType: React.FC = () => {
     if (!inputEl || !containerEl) return;
     const activeEl = containerEl.lastElementChild as HTMLElement | null;
     if (!activeEl) return;
-    const rect = activeEl.getBoundingClientRect();
-    inputEl.style.top = `${rect.top}px`;
-    inputEl.style.left = `${rect.left}px`;
+    const cursorChild = activeEl.children[activeTypedLen] as HTMLElement | undefined;
+    if (cursorChild) {
+      const rect = cursorChild.getBoundingClientRect();
+      inputEl.style.top = `${rect.top}px`;
+      inputEl.style.left = `${rect.left}px`;
+    } else {
+      const rect = activeEl.getBoundingClientRect();
+      inputEl.style.top = `${rect.top}px`;
+      inputEl.style.left = `${rect.left}px`;
+    }
   }, [activeLineIndex, activeTypedLen, isRunning]);
 
   const handleStart = () => {

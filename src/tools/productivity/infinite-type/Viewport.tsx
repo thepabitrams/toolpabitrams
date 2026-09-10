@@ -64,7 +64,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     const elTop = activeEl.offsetTop;
     const elHeight = activeEl.offsetHeight;
     const viewportHeight = viewportEl.clientHeight;
-    viewportEl.scrollTop = elTop - (viewportHeight - elHeight) / 2;
+    viewportEl.scrollTop = elTop + elHeight / 2 - viewportHeight * 0.35;
   }, [lines.length, activeTypedLen, isRunning, containerRef]);
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
