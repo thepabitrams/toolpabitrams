@@ -154,6 +154,18 @@ export const InfiniteType: React.FC = () => {
     }
   };
 
+  const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
+    if (!isRunning) return;
+    const input = e.currentTarget;
+    const value = input.value;
+    if (value.length > 0) {
+      for (let i = 0; i < value.length; i++) {
+        typeChar(value[i]);
+      }
+      input.value = '';
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isRunning) return;
 
@@ -171,10 +183,6 @@ export const InfiniteType: React.FC = () => {
       e.preventDefault();
       enter(maxChars);
       return;
-    }
-    if (key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-      e.preventDefault();
-      typeChar(key);
     }
   };
 
@@ -211,6 +219,7 @@ export const InfiniteType: React.FC = () => {
           zIndex: -1,
           pointerEvents: 'none',
         }}
+        onInput={handleInput}
         onKeyDown={handleKeyDown}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
