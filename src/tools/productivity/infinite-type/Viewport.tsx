@@ -1,5 +1,5 @@
 // src/tools/productivity/infinite-type/Viewport.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import type { Session, Line } from './useInfiniteType';
@@ -26,6 +26,8 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
   const viewportRef = React.useRef<HTMLDivElement>(null);
   const { lines } = state;
 
+  const activeTypedLen = lines.length > 0 ? lines[lines.length - 1].typed.length : 0;
+
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
@@ -50,6 +52,21 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     }
   }, [probeRef, onCharWidth]);
 
+  useLayoutEffect(() => {
+    const viewportEl = viewportRef.current;
+    const containerEl = containerRef.current;
+    if (!viewportEl || !containerEl) return;
+    if (!isRunning) return;
+
+    const activeEl = containerEl.lastElementChild as HTMLElement | null;
+    if (!activeEl) return;
+
+    const elTop = activeEl.offsetTop;
+    const elHeight = activeEl.offsetHeight;
+    const viewportHeight = viewportEl.clientHeight;
+    viewportEl.scrollTop = elTop - (viewportHeight - elHeight) / 2;
+  }, [lines.length, activeTypedLen, isRunning, containerRef]);
+
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
   const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
 
@@ -65,9 +82,9 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
           const isError = isTyped && (typedChar !== char);
           const isCursorHere = isActive && i === line.typed.length;
 
-          let cls = 'text-gray-400 dark:text-gray-600';
+          let cls = 'text-gray-300 dark:text-gray-700';
           if (isTyped) {
-            cls = isError ? 'text-red-500' : 'text-gray-800 dark:text-gray-200';
+            cls = isError ? 'text-red-500' : 'text-gray-900 dark:text-gray-100';
           }
           if (isCursorHere) cls += ' ' + cursorClass;
 
