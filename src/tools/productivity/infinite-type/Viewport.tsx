@@ -161,6 +161,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
         <div
           ref={viewportRef}
           className="relative px-6 py-4 overflow-y-auto h-[400px] font-mono text-lg leading-[46px] bg-white dark:bg-gray-950"
+          style={{ overscrollBehavior: keyboardOpen ? 'contain' : 'auto' }}
         >
           <span
             ref={probeRef}
