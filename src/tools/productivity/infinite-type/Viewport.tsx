@@ -164,8 +164,12 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     const offsetPx = vp.clientHeight * ACTIVE_LINE_TOP_OFFSET_RATIO;
     const targetScrollTop = lineTop - offsetPx;
 
+    const distance = Math.abs(targetScrollTop - vp.scrollTop);
+    const effectiveBehavior: ScrollBehavior =
+      distance > vp.clientHeight ? 'auto' : behavior;
+
     isProgrammaticScrollRef.current = true;
-    vp.scrollTo({ top: Math.max(0, targetScrollTop), behavior });
+    vp.scrollTo({ top: Math.max(0, targetScrollTop), behavior: effectiveBehavior });
 
     window.setTimeout(() => {
       isProgrammaticScrollRef.current = false;
