@@ -64,7 +64,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     const elTop = activeEl.offsetTop;
     const elHeight = activeEl.offsetHeight;
     const viewportHeight = viewportEl.clientHeight;
-    viewportEl.scrollTop = elTop + elHeight / 2 - viewportHeight * 0.35;
+    viewportEl.scrollTop = elTop + elHeight / 2 - viewportHeight * 0.5;
   }, [lines.length, activeTypedLen, isRunning, containerRef]);
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
@@ -124,9 +124,18 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
             }
             .cursor-bar {
               display: inline-block;
-              width: 2px;
-              height: 1.15em;
+              position: relative;
+              width: 0;
+              height: 1em;
               vertical-align: text-bottom;
+            }
+            .cursor-bar::after {
+              content: '';
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 2px;
+              height: 100%;
               background-color: rgb(59 130 246);
               animation: cursorBlinkBar 1s step-end infinite;
             }
@@ -140,7 +149,6 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
         <div
           ref={viewportRef}
           className="relative px-6 py-4 overflow-y-auto h-[400px] font-mono text-lg leading-[46px] bg-white dark:bg-gray-950"
-          style={{ overscrollBehavior: 'contain' }}
         >
           <span
             ref={probeRef}
