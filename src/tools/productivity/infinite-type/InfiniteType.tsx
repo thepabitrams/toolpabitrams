@@ -38,7 +38,6 @@ export const InfiniteType: React.FC = () => {
   } = useInfiniteType();
 
   const { showToast } = useToast();
-  const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLSpanElement>(null);
@@ -57,57 +56,6 @@ export const InfiniteType: React.FC = () => {
     if (containerWidth <= 0 || charWidth <= 0) return 40;
     return Math.max(1, Math.floor(containerWidth / charWidth));
   }, [containerWidth, charWidth]);
-
-  useEffect(() => {
-    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
-    if (!isTouchDevice) return;
-    if (!isFocused) return;
-
-    const vv = window.visualViewport;
-    const root = rootRef.current;
-    if (!root || !vv) return;
-
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevBodyPosition = document.body.style.position;
-    const prevBodyWidth = document.body.style.width;
-    const prevRootPosition = root.style.position;
-    const prevRootHeight = root.style.height;
-    const prevRootWidth = root.style.width;
-    const prevRootTop = root.style.top;
-    const prevRootLeft = root.style.left;
-    const prevRootBoxSizing = root.style.boxSizing;
-
-    const updateLayout = () => {
-      root.style.height = `${vv.height}px`;
-      root.style.width = `${vv.width}px`;
-      root.style.top = `${vv.offsetTop}px`;
-      root.style.left = `${vv.offsetLeft}px`;
-    };
-
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    root.style.position = 'fixed';
-    root.style.boxSizing = 'border-box';
-    updateLayout();
-
-    vv.addEventListener('resize', updateLayout);
-    vv.addEventListener('scroll', updateLayout);
-
-    return () => {
-      vv.removeEventListener('resize', updateLayout);
-      vv.removeEventListener('scroll', updateLayout);
-      document.body.style.overflow = prevBodyOverflow;
-      document.body.style.position = prevBodyPosition;
-      document.body.style.width = prevBodyWidth;
-      root.style.position = prevRootPosition;
-      root.style.height = prevRootHeight;
-      root.style.width = prevRootWidth;
-      root.style.top = prevRootTop;
-      root.style.left = prevRootLeft;
-      root.style.boxSizing = prevRootBoxSizing;
-    };
-  }, [isFocused]);
 
   useEffect(() => {
     if (isRunning) {
@@ -263,7 +211,6 @@ export const InfiniteType: React.FC = () => {
 
   return (
     <div
-      ref={rootRef}
       className="w-full py-6 px-4 sm:px-6 lg:px-8"
       onClick={focusInput}
     >
