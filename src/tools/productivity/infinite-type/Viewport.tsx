@@ -148,7 +148,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
       <Card className="overflow-hidden p-0 min-h-[400px]">
         <div
           ref={viewportRef}
-          className="relative px-6 py-4 overflow-y-auto h-[400px] font-mono text-lg leading-[46px] bg-white dark:bg-gray-950"
+          className="relative px-6 py-4 overflow-y-auto h-[400px] font-mono text-lg leading-[46px]"
         >
           <span
             ref={probeRef}
