@@ -174,7 +174,12 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
 
   useLayoutEffect(() => {
     if (!isRunning) return;
-    if (userScrollingRef.current) return;
+
+    userScrollingRef.current = false;
+    if (userScrollTimeoutRef.current) {
+      window.clearTimeout(userScrollTimeoutRef.current);
+      userScrollTimeoutRef.current = null;
+    }
 
     const vp = viewportRef.current;
     const line = activeLineRef.current;
