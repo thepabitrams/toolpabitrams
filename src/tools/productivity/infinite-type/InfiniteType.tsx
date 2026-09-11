@@ -242,7 +242,6 @@ export const InfiniteType: React.FC = () => {
         onKeyDown={handleKeyDown}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        tabIndex={0}
       />
 
       <div className="max-w-4xl mx-auto space-y-4">

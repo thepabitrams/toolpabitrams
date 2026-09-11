@@ -4,16 +4,15 @@ import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import type { Session, Line } from './useInfiniteType';
 
-const DEFAULT_VIEWPORT_HEIGHT     = 400;
-const MIN_VIEWPORT_HEIGHT         = 180;
-const VIEWPORT_BOTTOM_MARGIN      = 16;
+const DEFAULT_VIEWPORT_HEIGHT = 400;
+const MIN_VIEWPORT_HEIGHT = 180;
+const VIEWPORT_BOTTOM_MARGIN = 16;
 const ACTIVE_LINE_TOP_OFFSET_RATIO = 0.25;
-const SCROLL_TRIGGER_TOP_RATIO     = 0.10;
-const SCROLL_TRIGGER_BOTTOM_RATIO  = 0.35;
-const PROGRAMMATIC_SCROLL_LOCK_MS  = 600;
-const USER_SCROLL_COOLDOWN_MS      = 1200;
-const HEIGHT_SETTLE_MS             = 300;
-const FOCUS_SNAP_DELAY_MS          = 100;
+const SCROLL_TRIGGER_TOP_RATIO = 0.10;
+const SCROLL_TRIGGER_BOTTOM_RATIO = 0.35;
+const PROGRAMMATIC_SCROLL_LOCK_MS = 600;
+const USER_SCROLL_COOLDOWN_MS = 1200;
+const HEIGHT_SETTLE_MS = 300;
 
 interface ViewportProps {
   state: Session;
@@ -195,6 +194,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
 
   useEffect(() => {
     if (!isRunning) return;
+    if (!isFocused) return;
     if (userScrollingRef.current) return;
 
     const timeout = window.setTimeout(() => {
@@ -203,20 +203,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     }, HEIGHT_SETTLE_MS);
 
     return () => window.clearTimeout(timeout);
-  }, [viewportHeight, isRunning]);
-
-  useEffect(() => {
-    if (!isRunning) return;
-    if (!isFocused) return;
-    if (userScrollingRef.current) return;
-
-    const timeout = window.setTimeout(() => {
-      if (userScrollingRef.current) return;
-      scrollActiveLineIntoView('auto');
-    }, FOCUS_SNAP_DELAY_MS);
-
-    return () => window.clearTimeout(timeout);
-  }, [isFocused, isRunning, viewportHeight]);
+  }, [isFocused, viewportHeight, isRunning]);
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
   const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
@@ -304,7 +291,6 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
           style={{
             height: `${viewportHeight}px`,
             touchAction: 'pan-y',
-            overscrollBehavior: 'auto',
             transition: 'height 200ms ease-out',
           }}
         >
