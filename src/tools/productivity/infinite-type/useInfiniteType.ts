@@ -21,7 +21,7 @@ export interface UseInfiniteTypeReturn {
   start: (maxChars: number) => void;
   stop: () => void;
   isRunning: boolean;
-  typeChar: (char: string) => void;
+  typeChar: (character: string) => void;
   backspace: () => void;
   enter: (maxChars: number) => void;
 }
@@ -30,15 +30,15 @@ const DEFAULT_POOL = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012345
 
 const randomBuffer = new Uint32Array(1);
 
-function randomChar(pool: string): string {
+function randomCharacter(pool: string): string {
   crypto.getRandomValues(randomBuffer);
   return pool[randomBuffer[0] % pool.length] || 'a';
 }
 
 function randomString(pool: string, count: number): string {
-  let s = '';
-  for (let i = 0; i < count; i++) s += randomChar(pool);
-  return s;
+  let result = '';
+  for (let i = 0; i < count; i++) result += randomCharacter(pool);
+  return result;
 }
 
 function createLine(pool: string, maxChars: number): Line {
@@ -60,10 +60,10 @@ export function useInfiniteType(): UseInfiniteTypeReturn {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem('infinite_type_config');
-    if (saved) {
+    const savedConfig = localStorage.getItem('infinite_type_config');
+    if (savedConfig) {
       try {
-        const config = JSON.parse(saved);
+        const config = JSON.parse(savedConfig);
         if (typeof config.pool === 'string') setPool(config.pool);
       } catch {}
     }
@@ -91,27 +91,27 @@ export function useInfiniteType(): UseInfiniteTypeReturn {
   const stop = useCallback(() => setIsRunning(false), []);
 
   const typeChar = useCallback(
-    (char: string) => {
+    (character: string) => {
       if (!isRunning) return;
-      setState((prev) => {
-        const { lines, keys, hits, misses, firstKeyAt } = prev;
-        if (lines.length === 0) return prev;
-        const idx = lines.length - 1;
-        const line = lines[idx];
-        if (line.typed.length >= line.target.length) return prev;
-        const expected = line.target[line.typed.length];
-        const correct = char === expected;
+      setState((previousState) => {
+        const { lines, keys, hits, misses, firstKeyAt } = previousState;
+        if (lines.length === 0) return previousState;
+        const activeLineIndex = lines.length - 1;
+        const activeLine = lines[activeLineIndex];
+        if (activeLine.typed.length >= activeLine.target.length) return previousState;
+        const expectedCharacter = activeLine.target[activeLine.typed.length];
+        const isCorrect = character === expectedCharacter;
         const newLines = [...lines];
-        newLines[idx] = {
-          ...line,
-          typed: line.typed + char,
+        newLines[activeLineIndex] = {
+          ...activeLine,
+          typed: activeLine.typed + character,
         };
         return {
-          ...prev,
+          ...previousState,
           lines: newLines,
           keys: keys + 1,
-          hits: hits + (correct ? 1 : 0),
-          misses: misses + (correct ? 0 : 1),
+          hits: hits + (isCorrect ? 1 : 0),
+          misses: misses + (isCorrect ? 0 : 1),
           firstKeyAt: firstKeyAt === 0 ? Date.now() : firstKeyAt,
         };
       });
@@ -121,23 +121,23 @@ export function useInfiniteType(): UseInfiniteTypeReturn {
 
   const backspace = useCallback(() => {
     if (!isRunning) return;
-    setState((prev) => {
-      const { lines } = prev;
-      if (lines.length === 0) return prev;
-      const idx = lines.length - 1;
-      const line = lines[idx];
-      if (line.typed.length > 0) {
+    setState((previousState) => {
+      const { lines } = previousState;
+      if (lines.length === 0) return previousState;
+      const activeLineIndex = lines.length - 1;
+      const activeLine = lines[activeLineIndex];
+      if (activeLine.typed.length > 0) {
         const newLines = [...lines];
-        newLines[idx] = {
-          ...line,
-          typed: line.typed.slice(0, -1),
+        newLines[activeLineIndex] = {
+          ...activeLine,
+          typed: activeLine.typed.slice(0, -1),
         };
-        return { ...prev, lines: newLines };
+        return { ...previousState, lines: newLines };
       }
       if (lines.length > 1) {
-        return { ...prev, lines: lines.slice(0, -1) };
+        return { ...previousState, lines: lines.slice(0, -1) };
       }
-      return prev;
+      return previousState;
     });
   }, [isRunning]);
 
@@ -145,13 +145,13 @@ export function useInfiniteType(): UseInfiniteTypeReturn {
     (maxChars: number) => {
       if (!isRunning) return;
       const activePool = pool.length > 0 ? pool : DEFAULT_POOL;
-      setState((prev) => {
-        const { lines } = prev;
-        if (lines.length === 0) return prev;
-        const idx = lines.length - 1;
-        const line = lines[idx];
-        if (line.typed.length < line.target.length) return prev;
-        return { ...prev, lines: [...lines, createLine(activePool, maxChars)] };
+      setState((previousState) => {
+        const { lines } = previousState;
+        if (lines.length === 0) return previousState;
+        const activeLineIndex = lines.length - 1;
+        const activeLine = lines[activeLineIndex];
+        if (activeLine.typed.length < activeLine.target.length) return previousState;
+        return { ...previousState, lines: [...lines, createLine(activePool, maxChars)] };
       });
     },
     [isRunning, pool]

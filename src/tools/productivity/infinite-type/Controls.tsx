@@ -9,13 +9,13 @@ import { FiPlay, FiSquare, FiCopy } from 'react-icons/fi';
 interface ControlsProps {
   pool: string;
   isRunning: boolean;
-  onPoolChange: (val: string) => void;
+  onPoolChange: (value: string) => void;
   onStart: () => void;
   onStop: () => void;
   onCopy: () => void;
   stats: {
-    cpm: number;
-    acc: string;
+    charsPerMinute: number;
+    accuracy: string;
     keys: number;
     errors: number;
     time: string;
@@ -40,7 +40,7 @@ export const Controls: React.FC<ControlsProps> = ({
               <Input
                 label="Character Pool"
                 value={pool}
-                onChange={(e) => onPoolChange(e.target.value)}
+                onChange={(event) => onPoolChange(event.target.value)}
                 disabled={isRunning}
                 spellCheck={false}
                 className="font-mono text-sm"
@@ -61,10 +61,10 @@ export const Controls: React.FC<ControlsProps> = ({
 
           <div className="flex flex-wrap items-center gap-5 pt-2 text-sm border-t border-gray-100 dark:border-gray-800">
             <span className="text-gray-500 dark:text-gray-400">
-              CPM <strong className="text-gray-900 dark:text-white font-mono ml-1">{stats.cpm}</strong>
+              CPM <strong className="text-gray-900 dark:text-white font-mono ml-1">{stats.charsPerMinute}</strong>
             </span>
             <span className="text-gray-500 dark:text-gray-400">
-              Acc <strong className="text-gray-900 dark:text-white font-mono ml-1">{stats.acc}%</strong>
+              Acc <strong className="text-gray-900 dark:text-white font-mono ml-1">{stats.accuracy}%</strong>
             </span>
             <span className="text-gray-500 dark:text-gray-400">
               Keys <strong className="text-gray-900 dark:text-white font-mono ml-1">{stats.keys}</strong>

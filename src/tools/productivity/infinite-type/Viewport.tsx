@@ -81,24 +81,26 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     const visualViewport = window.visualViewport;
 
     const updateHeight = () => {
-      const el = viewportRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
+      const viewportElement = viewportRef.current;
+      if (!viewportElement) return;
+      const viewportRect = viewportElement.getBoundingClientRect();
 
-      let available: number;
+      let availableHeight: number;
       if (visualViewport) {
         const visibleBottom = visualViewport.offsetTop + visualViewport.height;
-        available = visibleBottom - rect.top - VIEWPORT_BOTTOM_MARGIN;
+        availableHeight = visibleBottom - viewportRect.top - VIEWPORT_BOTTOM_MARGIN;
       } else {
-        available = window.innerHeight - rect.top - VIEWPORT_BOTTOM_MARGIN;
+        availableHeight = window.innerHeight - viewportRect.top - VIEWPORT_BOTTOM_MARGIN;
       }
 
-      const clamped = Math.max(
+      const clampedHeight = Math.max(
         MIN_VIEWPORT_HEIGHT,
-        Math.min(DEFAULT_VIEWPORT_HEIGHT, available)
+        Math.min(DEFAULT_VIEWPORT_HEIGHT, availableHeight)
       );
 
-      setViewportHeight((prev) => (Math.abs(prev - clamped) > 1 ? clamped : prev));
+      setViewportHeight((previousHeight) =>
+        Math.abs(previousHeight - clampedHeight) > 1 ? clampedHeight : previousHeight
+      );
     };
 
     updateHeight();
@@ -125,18 +127,18 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
   }, []);
 
   useEffect(() => {
-    const el = viewportRef.current;
-    if (!el) return;
+    const viewportElement = viewportRef.current;
+    if (!viewportElement) return;
 
     const onTouchStart = () => markUserScrolling();
     const onWheel = () => markUserScrolling();
 
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('wheel', onWheel, { passive: true });
+    viewportElement.addEventListener('touchstart', onTouchStart, { passive: true });
+    viewportElement.addEventListener('wheel', onWheel, { passive: true });
 
     return () => {
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('wheel', onWheel);
+      viewportElement.removeEventListener('touchstart', onTouchStart);
+      viewportElement.removeEventListener('wheel', onWheel);
       if (userScrollTimeoutRef.current) {
         window.clearTimeout(userScrollTimeoutRef.current);
       }
@@ -149,16 +151,16 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
   };
 
   const scrollActiveLineIntoView = (behavior: ScrollBehavior) => {
-    const vp = viewportRef.current;
-    const line = activeLineRef.current;
-    if (!vp || !line) return;
+    const viewportElement = viewportRef.current;
+    const activeLineElement = activeLineRef.current;
+    if (!viewportElement || !activeLineElement) return;
 
-    const lineTop = line.offsetTop;
-    const offsetPx = vp.clientHeight * ACTIVE_LINE_TOP_OFFSET_RATIO;
-    const targetScrollTop = lineTop - offsetPx;
+    const activeLineTop = activeLineElement.offsetTop;
+    const activeLineTopOffsetPx = viewportElement.clientHeight * ACTIVE_LINE_TOP_OFFSET_RATIO;
+    const targetScrollTop = activeLineTop - activeLineTopOffsetPx;
 
     isProgrammaticScrollRef.current = true;
-    vp.scrollTo({ top: Math.max(0, targetScrollTop), behavior });
+    viewportElement.scrollTo({ top: Math.max(0, targetScrollTop), behavior });
 
     window.setTimeout(() => {
       isProgrammaticScrollRef.current = false;
@@ -169,18 +171,20 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     if (!isRunning) return;
     if (isUserScrollingRef.current) return;
 
-    const vp = viewportRef.current;
-    const line = activeLineRef.current;
-    if (!vp || !line) return;
+    const viewportElement = viewportRef.current;
+    const activeLineElement = activeLineRef.current;
+    if (!viewportElement || !activeLineElement) return;
 
-    const lineTop = line.offsetTop;
-    const lineBottom = lineTop + line.offsetHeight;
-    const vpTop = vp.scrollTop;
+    const activeLineTop = activeLineElement.offsetTop;
+    const activeLineBottom = activeLineTop + activeLineElement.offsetHeight;
+    const viewportScrollTop = viewportElement.scrollTop;
 
-    const triggerTop = vpTop + vp.clientHeight * SCROLL_TRIGGER_TOP_RATIO;
-    const triggerBottom = vpTop + vp.clientHeight * SCROLL_TRIGGER_BOTTOM_RATIO;
+    const triggerTop =
+      viewportScrollTop + viewportElement.clientHeight * SCROLL_TRIGGER_TOP_RATIO;
+    const triggerBottom =
+      viewportScrollTop + viewportElement.clientHeight * SCROLL_TRIGGER_BOTTOM_RATIO;
 
-    if (lineTop < triggerTop || lineBottom > triggerBottom) {
+    if (activeLineTop < triggerTop || activeLineBottom > triggerBottom) {
       scrollActiveLineIntoView('smooth');
     }
   }, [lines.length, activeTypedLength, isRunning]);
@@ -190,16 +194,16 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     if (!isFocused) return;
     if (isUserScrollingRef.current) return;
 
-    const timeout = window.setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       if (isUserScrollingRef.current) return;
       scrollActiveLineIntoView('auto');
     }, HEIGHT_SETTLE_MS);
 
-    return () => window.clearTimeout(timeout);
+    return () => window.clearTimeout(timeoutId);
   }, [isFocused, viewportHeight, isRunning]);
 
-  const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
-  const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
+  const cursorClassName = isFocused ? 'cursor-blink' : 'cursor-hidden';
+  const endCursorClassName = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
 
   const renderLine = (line: Line, isActive: boolean) => {
     return (
@@ -207,27 +211,29 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
         className="w-full"
         style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}
       >
-        {line.target.split('').map((char, i) => {
-          const typedChar = line.typed[i] || '';
-          const isTyped = i < line.typed.length;
-          const isError = isTyped && (typedChar !== char);
-          const isCursorHere = isActive && i === line.typed.length;
+        {line.target.split('').map((character, characterIndex) => {
+          const typedCharacter = line.typed[characterIndex] || '';
+          const isTyped = characterIndex < line.typed.length;
+          const isError = isTyped && typedCharacter !== character;
+          const isCursorHere = isActive && characterIndex === line.typed.length;
 
-          let cls = 'text-gray-300 dark:text-gray-700';
+          let characterClassName = 'text-gray-300 dark:text-gray-700';
           if (isTyped) {
-            cls = isError ? 'text-red-500' : 'text-gray-900 dark:text-gray-100';
+            characterClassName = isError
+              ? 'text-red-500'
+              : 'text-gray-900 dark:text-gray-100';
           }
-          if (isCursorHere) cls += ' ' + cursorClass;
+          if (isCursorHere) characterClassName += ' ' + cursorClassName;
 
-          const display = char === ' ' ? '\u00A0' : char;
+          const displayCharacter = character === ' ' ? '\u00A0' : character;
           return (
-            <span key={i} className={cls}>
-              {display}
+            <span key={characterIndex} className={characterClassName}>
+              {displayCharacter}
             </span>
           );
         })}
         {isActive && line.typed.length >= line.target.length && line.target.length > 0 && (
-          <span className={endCursorClass} />
+          <span className={endCursorClassName} />
         )}
       </div>
     );
@@ -309,15 +315,15 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
                 Press Start to begin typing
               </div>
             ) : (
-              lines.map((line, i) => {
-                const isActive = i === lines.length - 1;
-                const isCompleted = i < lines.length - 1;
-                const opacity = isCompleted ? 'opacity-50' : 'opacity-100';
+              lines.map((line, lineIndex) => {
+                const isActive = lineIndex === lines.length - 1;
+                const isCompleted = lineIndex < lines.length - 1;
+                const opacityClassName = isCompleted ? 'opacity-50' : 'opacity-100';
                 return (
                   <div
-                    key={i}
+                    key={lineIndex}
                     ref={isActive ? activeLineRef : undefined}
-                    className={`w-full ${opacity}`}
+                    className={`w-full ${opacityClassName}`}
                   >
                     {renderLine(line, isActive)}
                   </div>
