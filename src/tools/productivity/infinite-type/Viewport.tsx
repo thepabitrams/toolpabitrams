@@ -25,7 +25,9 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
 }) => {
   const viewportRef = useRef<HTMLDivElement>(null);
   const activeLineRef = useRef<HTMLDivElement>(null);
-  const userScrollUntilRef = useRef<number>(0);
+  const userScrollingRef = useRef(false);
+  const userScrollTimeoutRef = useRef<number | null>(null);
+  const isProgrammaticScrollRef = useRef(false);
   const { lines } = state;
 
   const activeTypedLen = lines.length > 0 ? lines[lines.length - 1].typed.length : 0;
@@ -54,30 +56,74 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     }
   }, [probeRef, onCharWidth]);
 
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const markUserScrolling = () => {
+      userScrollingRef.current = true;
+      if (userScrollTimeoutRef.current) {
+        window.clearTimeout(userScrollTimeoutRef.current);
+      }
+      userScrollTimeoutRef.current = window.setTimeout(() => {
+        userScrollingRef.current = false;
+      }, 1200);
+    };
+
+    const onTouchStart = () => markUserScrolling();
+    const onWheel = () => markUserScrolling();
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('wheel', onWheel, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('wheel', onWheel);
+      if (userScrollTimeoutRef.current) {
+        window.clearTimeout(userScrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleScroll = () => {
+    if (isProgrammaticScrollRef.current) return;
+
+    userScrollingRef.current = true;
+    if (userScrollTimeoutRef.current) {
+      window.clearTimeout(userScrollTimeoutRef.current);
+    }
+    userScrollTimeoutRef.current = window.setTimeout(() => {
+      userScrollingRef.current = false;
+    }, 1200);
+  };
+
   useLayoutEffect(() => {
     if (!isRunning) return;
+    if (userScrollingRef.current) return;
+
     const vp = viewportRef.current;
     const line = activeLineRef.current;
     if (!vp || !line) return;
 
-    if (Date.now() < userScrollUntilRef.current) return;
-
     const lineTop = line.offsetTop;
     const lineBottom = lineTop + line.offsetHeight;
     const vpTop = vp.scrollTop;
+    const vpBottom = vpTop + vp.clientHeight;
 
     const comfortTop = vpTop + vp.clientHeight * 0.15;
-    const comfortBottom = vpTop + vp.clientHeight * 0.45;
+    const comfortBottom = vpTop + vp.clientHeight * 0.55;
 
     if (lineTop < comfortTop || lineBottom > comfortBottom) {
+      isProgrammaticScrollRef.current = true;
+
       const target = lineTop - vp.clientHeight * 0.25;
       vp.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+
+      window.setTimeout(() => {
+        isProgrammaticScrollRef.current = false;
+      }, 600);
     }
   }, [lines.length, activeTypedLen, isRunning]);
-
-  const handleScroll = () => {
-    userScrollUntilRef.current = Date.now() + 1000;
-  };
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
   const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
@@ -164,8 +210,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
           className="relative px-6 py-4 overflow-y-auto h-[400px] font-mono text-lg leading-[46px]"
           style={{
             touchAction: 'pan-y',
-            WebkitOverflowScrolling: 'touch',
-            overscrollBehavior: 'contain',
+            overscrollBehavior: 'auto',
           }}
         >
           <span
