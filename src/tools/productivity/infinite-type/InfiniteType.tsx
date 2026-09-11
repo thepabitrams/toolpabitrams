@@ -59,7 +59,7 @@ export const InfiniteType: React.FC = () => {
 
   useEffect(() => {
     if (isRunning) {
-      inputRef.current?.focus();
+      inputRef.current?.focus({ preventScroll: true });
     }
   }, [isRunning]);
 
@@ -87,14 +87,18 @@ export const InfiniteType: React.FC = () => {
   }, [containerWidth, isRunning, stop, showToast]);
 
   useEffect(() => {
+    if (!isRunning) return;
     const inputEl = inputRef.current;
     const containerEl = containerRef.current;
     if (!inputEl || !containerEl) return;
     const activeEl = containerEl.lastElementChild as HTMLElement | null;
     if (!activeEl) return;
-    const rect = activeEl.getBoundingClientRect();
-    inputEl.style.top = `${rect.top}px`;
-    inputEl.style.left = `${rect.left}px`;
+
+    const raf = requestAnimationFrame(() => {
+      const rect = activeEl.getBoundingClientRect();
+      inputEl.style.transform = `translate(${rect.left}px, ${Math.max(0, rect.top)}px)`;
+    });
+    return () => cancelAnimationFrame(raf);
   }, [activeLineIndex, activeTypedLen, isRunning]);
 
   const handleStart = () => {
@@ -120,7 +124,7 @@ export const InfiniteType: React.FC = () => {
     startWidth.current = cw;
     resizeWarned.current = false;
     start(mc);
-    inputRef.current?.focus();
+    inputRef.current?.focus({ preventScroll: true });
   };
 
   const elapsedMs = state.firstKeyAt > 0 ? Date.now() - state.firstKeyAt : 0;
@@ -202,7 +206,7 @@ export const InfiniteType: React.FC = () => {
   };
 
   const focusInput = () => {
-    if (isRunning) inputRef.current?.focus();
+    if (isRunning) inputRef.current?.focus({ preventScroll: true });
   };
 
   return (
