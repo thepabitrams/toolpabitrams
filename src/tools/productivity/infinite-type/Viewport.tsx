@@ -65,14 +65,13 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     const lineTop = line.offsetTop;
     const lineBottom = lineTop + line.offsetHeight;
     const vpTop = vp.scrollTop;
-    const vpBottom = vpTop + vp.clientHeight;
 
     const comfortTop = vpTop + vp.clientHeight * 0.15;
-    const comfortBottom = vpTop + vp.clientHeight * 0.85;
+    const comfortBottom = vpTop + vp.clientHeight * 0.45;
 
     if (lineTop < comfortTop || lineBottom > comfortBottom) {
-      const target = lineTop + line.offsetHeight / 2 - vp.clientHeight / 2;
-      vp.scrollTo({ top: target, behavior: 'smooth' });
+      const target = lineTop - vp.clientHeight * 0.25;
+      vp.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
     }
   }, [lines.length, activeTypedLen, isRunning]);
 
