@@ -1,9 +1,12 @@
 // src/tools/productivity/infinite-type/Viewport.tsx
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import type { Session, Line } from './useInfiniteType';
 
+const DEFAULT_VIEWPORT_HEIGHT     = 400;
+const MIN_VIEWPORT_HEIGHT         = 180;
+const VIEWPORT_BOTTOM_MARGIN      = 16;
 const ACTIVE_LINE_TOP_OFFSET_RATIO = 0.25;
 const SCROLL_TRIGGER_TOP_RATIO     = 0.10;
 const SCROLL_TRIGGER_BOTTOM_RATIO  = 0.35;
@@ -34,6 +37,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
   const userScrollingRef = useRef(false);
   const userScrollTimeoutRef = useRef<number | null>(null);
   const isProgrammaticScrollRef = useRef(false);
+  const [viewportHeight, setViewportHeight] = useState<number>(DEFAULT_VIEWPORT_HEIGHT);
   const { lines } = state;
 
   const activeTypedLen = lines.length > 0 ? lines[lines.length - 1].typed.length : 0;
@@ -61,6 +65,45 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
       document.fonts.ready.then(measureProbe);
     }
   }, [probeRef, onCharWidth]);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+
+    const updateHeight = () => {
+      const el = viewportRef.current;
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+
+      if (vv) {
+        const available = vv.height - rect.top - VIEWPORT_BOTTOM_MARGIN;
+        const clamped = Math.max(MIN_VIEWPORT_HEIGHT, Math.min(DEFAULT_VIEWPORT_HEIGHT, available));
+        setViewportHeight(clamped);
+      } else {
+        const available = window.innerHeight - rect.top - VIEWPORT_BOTTOM_MARGIN;
+        const clamped = Math.max(MIN_VIEWPORT_HEIGHT, Math.min(DEFAULT_VIEWPORT_HEIGHT, available));
+        setViewportHeight(clamped);
+      }
+    };
+
+    updateHeight();
+
+    if (vv) {
+      vv.addEventListener('resize', updateHeight);
+      vv.addEventListener('scroll', updateHeight);
+    }
+    window.addEventListener('resize', updateHeight);
+    window.addEventListener('orientationchange', updateHeight);
+
+    return () => {
+      if (vv) {
+        vv.removeEventListener('resize', updateHeight);
+        vv.removeEventListener('scroll', updateHeight);
+      }
+      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener('orientationchange', updateHeight);
+    };
+  }, []);
 
   useEffect(() => {
     const el = viewportRef.current;
@@ -130,7 +173,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
         isProgrammaticScrollRef.current = false;
       }, PROGRAMMATIC_SCROLL_LOCK_MS);
     }
-  }, [lines.length, activeTypedLen, isRunning]);
+  }, [lines.length, activeTypedLen, isRunning, viewportHeight]);
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
   const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
@@ -210,14 +253,16 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
           `,
         }}
       />
-      <Card className="overflow-hidden p-0 min-h-[400px]">
+      <Card className="overflow-hidden p-0 min-h-[180px]">
         <div
           ref={viewportRef}
           onScroll={handleScroll}
-          className="relative px-6 py-4 overflow-y-auto h-[400px] font-mono text-lg leading-[46px]"
+          className="relative px-6 py-4 overflow-y-auto font-mono text-lg leading-[46px]"
           style={{
+            height: `${viewportHeight}px`,
             touchAction: 'pan-y',
             overscrollBehavior: 'auto',
+            transition: 'height 150ms ease-out',
           }}
         >
           <span
@@ -230,7 +275,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
           </span>
           <div ref={containerRef} className="flex flex-col w-full gap-1">
             {lines.length === 0 ? (
-              <div className="flex items-center justify-center h-[360px] text-gray-400 dark:text-gray-500 text-sm">
+              <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm">
                 Press Start to begin typing
               </div>
             ) : (
