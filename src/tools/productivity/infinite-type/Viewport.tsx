@@ -4,6 +4,12 @@ import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import type { Session, Line } from './useInfiniteType';
 
+const ACTIVE_LINE_TOP_OFFSET_RATIO = 0.25;
+const SCROLL_TRIGGER_TOP_RATIO     = 0.10;
+const SCROLL_TRIGGER_BOTTOM_RATIO  = 0.35;
+const PROGRAMMATIC_SCROLL_LOCK_MS  = 600;
+const USER_SCROLL_COOLDOWN_MS      = 1200;
+
 interface ViewportProps {
   state: Session;
   isRunning: boolean;
@@ -67,7 +73,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
       }
       userScrollTimeoutRef.current = window.setTimeout(() => {
         userScrollingRef.current = false;
-      }, 1200);
+      }, USER_SCROLL_COOLDOWN_MS);
     };
 
     const onTouchStart = () => markUserScrolling();
@@ -94,7 +100,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     }
     userScrollTimeoutRef.current = window.setTimeout(() => {
       userScrollingRef.current = false;
-    }, 1200);
+    }, USER_SCROLL_COOLDOWN_MS);
   };
 
   useLayoutEffect(() => {
@@ -108,20 +114,21 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     const lineTop = line.offsetTop;
     const lineBottom = lineTop + line.offsetHeight;
     const vpTop = vp.scrollTop;
-    const vpBottom = vpTop + vp.clientHeight;
 
-    const comfortTop = vpTop + vp.clientHeight * 0.15;
-    const comfortBottom = vpTop + vp.clientHeight * 0.55;
+    const triggerTop = vpTop + vp.clientHeight * SCROLL_TRIGGER_TOP_RATIO;
+    const triggerBottom = vpTop + vp.clientHeight * SCROLL_TRIGGER_BOTTOM_RATIO;
 
-    if (lineTop < comfortTop || lineBottom > comfortBottom) {
+    if (lineTop < triggerTop || lineBottom > triggerBottom) {
       isProgrammaticScrollRef.current = true;
 
-      const target = lineTop - vp.clientHeight * 0.25;
-      vp.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+      const offsetPx = vp.clientHeight * ACTIVE_LINE_TOP_OFFSET_RATIO;
+      const targetScrollTop = lineTop - offsetPx;
+
+      vp.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
 
       window.setTimeout(() => {
         isProgrammaticScrollRef.current = false;
-      }, 600);
+      }, PROGRAMMATIC_SCROLL_LOCK_MS);
     }
   }, [lines.length, activeTypedLen, isRunning]);
 
