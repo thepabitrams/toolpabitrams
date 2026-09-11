@@ -1,5 +1,5 @@
 // src/tools/productivity/infinite-type/Viewport.tsx
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import type { Session, Line } from './useInfiniteType';
@@ -35,13 +35,23 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
 }) => {
   const viewportRef = useRef<HTMLDivElement>(null);
   const activeLineRef = useRef<HTMLDivElement>(null);
-  const userScrollingRef = useRef(false);
+  const isUserScrollingRef = useRef(false);
   const userScrollTimeoutRef = useRef<number | null>(null);
   const isProgrammaticScrollRef = useRef(false);
   const [viewportHeight, setViewportHeight] = useState<number>(DEFAULT_VIEWPORT_HEIGHT);
   const { lines } = state;
 
-  const activeTypedLen = lines.length > 0 ? lines[lines.length - 1].typed.length : 0;
+  const activeTypedLength = lines.length > 0 ? lines[lines.length - 1].typed.length : 0;
+
+  const markUserScrolling = useCallback(() => {
+    isUserScrollingRef.current = true;
+    if (userScrollTimeoutRef.current) {
+      window.clearTimeout(userScrollTimeoutRef.current);
+    }
+    userScrollTimeoutRef.current = window.setTimeout(() => {
+      isUserScrollingRef.current = false;
+    }, USER_SCROLL_COOLDOWN_MS);
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -68,7 +78,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
   }, [probeRef, onCharWidth]);
 
   useEffect(() => {
-    const vv = window.visualViewport;
+    const visualViewport = window.visualViewport;
 
     const updateHeight = () => {
       const el = viewportRef.current;
@@ -76,8 +86,8 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
       const rect = el.getBoundingClientRect();
 
       let available: number;
-      if (vv) {
-        const visibleBottom = vv.offsetTop + vv.height;
+      if (visualViewport) {
+        const visibleBottom = visualViewport.offsetTop + visualViewport.height;
         available = visibleBottom - rect.top - VIEWPORT_BOTTOM_MARGIN;
       } else {
         available = window.innerHeight - rect.top - VIEWPORT_BOTTOM_MARGIN;
@@ -93,9 +103,9 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
 
     updateHeight();
 
-    if (vv) {
-      vv.addEventListener('resize', updateHeight);
-      vv.addEventListener('scroll', updateHeight);
+    if (visualViewport) {
+      visualViewport.addEventListener('resize', updateHeight);
+      visualViewport.addEventListener('scroll', updateHeight);
     }
     window.addEventListener('resize', updateHeight);
     window.addEventListener('orientationchange', updateHeight);
@@ -103,9 +113,9 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     document.addEventListener('focusout', updateHeight);
 
     return () => {
-      if (vv) {
-        vv.removeEventListener('resize', updateHeight);
-        vv.removeEventListener('scroll', updateHeight);
+      if (visualViewport) {
+        visualViewport.removeEventListener('resize', updateHeight);
+        visualViewport.removeEventListener('scroll', updateHeight);
       }
       window.removeEventListener('resize', updateHeight);
       window.removeEventListener('orientationchange', updateHeight);
@@ -117,16 +127,6 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
-
-    const markUserScrolling = () => {
-      userScrollingRef.current = true;
-      if (userScrollTimeoutRef.current) {
-        window.clearTimeout(userScrollTimeoutRef.current);
-      }
-      userScrollTimeoutRef.current = window.setTimeout(() => {
-        userScrollingRef.current = false;
-      }, USER_SCROLL_COOLDOWN_MS);
-    };
 
     const onTouchStart = () => markUserScrolling();
     const onWheel = () => markUserScrolling();
@@ -141,18 +141,11 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
         window.clearTimeout(userScrollTimeoutRef.current);
       }
     };
-  }, []);
+  }, [markUserScrolling]);
 
   const handleScroll = () => {
     if (isProgrammaticScrollRef.current) return;
-
-    userScrollingRef.current = true;
-    if (userScrollTimeoutRef.current) {
-      window.clearTimeout(userScrollTimeoutRef.current);
-    }
-    userScrollTimeoutRef.current = window.setTimeout(() => {
-      userScrollingRef.current = false;
-    }, USER_SCROLL_COOLDOWN_MS);
+    markUserScrolling();
   };
 
   const scrollActiveLineIntoView = (behavior: ScrollBehavior) => {
@@ -164,12 +157,8 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     const offsetPx = vp.clientHeight * ACTIVE_LINE_TOP_OFFSET_RATIO;
     const targetScrollTop = lineTop - offsetPx;
 
-    const distance = Math.abs(targetScrollTop - vp.scrollTop);
-    const effectiveBehavior: ScrollBehavior =
-      distance > vp.clientHeight ? 'auto' : behavior;
-
     isProgrammaticScrollRef.current = true;
-    vp.scrollTo({ top: Math.max(0, targetScrollTop), behavior: effectiveBehavior });
+    vp.scrollTo({ top: Math.max(0, targetScrollTop), behavior });
 
     window.setTimeout(() => {
       isProgrammaticScrollRef.current = false;
@@ -178,12 +167,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
 
   useLayoutEffect(() => {
     if (!isRunning) return;
-
-    userScrollingRef.current = false;
-    if (userScrollTimeoutRef.current) {
-      window.clearTimeout(userScrollTimeoutRef.current);
-      userScrollTimeoutRef.current = null;
-    }
+    if (isUserScrollingRef.current) return;
 
     const vp = viewportRef.current;
     const line = activeLineRef.current;
@@ -199,15 +183,15 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     if (lineTop < triggerTop || lineBottom > triggerBottom) {
       scrollActiveLineIntoView('smooth');
     }
-  }, [lines.length, activeTypedLen, isRunning]);
+  }, [lines.length, activeTypedLength, isRunning]);
 
   useEffect(() => {
     if (!isRunning) return;
     if (!isFocused) return;
-    if (userScrollingRef.current) return;
+    if (isUserScrollingRef.current) return;
 
     const timeout = window.setTimeout(() => {
-      if (userScrollingRef.current) return;
+      if (isUserScrollingRef.current) return;
       scrollActiveLineIntoView('auto');
     }, HEIGHT_SETTLE_MS);
 

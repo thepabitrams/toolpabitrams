@@ -10,7 +10,7 @@ import { useInfiniteType } from './useInfiniteType';
 import { Controls } from './Controls';
 import { Viewport } from './Viewport';
 
-const RESIZE_THRESHOLD = 20;
+const RESIZE_THRESHOLD_PX = 20;
 const TOOLKIT_URL = 'https://toolpabitrams.pages.dev/';
 
 function formatTime(ms: number): string {
@@ -45,14 +45,13 @@ export const InfiniteType: React.FC = () => {
   const [charWidth, setCharWidth] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
   const [, setTick] = useState(0);
-  const startWidth = useRef(0);
-  const resizeWarned = useRef(false);
+  const initialContainerWidthRef = useRef(0);
+  const hasWarnedAboutResizeRef = useRef(false);
 
   const activeLineIndex = state.lines.length - 1;
-  const activeLine = state.lines[activeLineIndex];
-  const activeTypedLen = activeLine ? activeLine.typed.length : 0;
+  const activeTypedLength = state.lines[activeLineIndex]?.typed.length ?? 0;
 
-  const maxChars = useMemo(() => {
+  const maxCharsPerLine = useMemo(() => {
     if (containerWidth <= 0 || charWidth <= 0) return 40;
     return Math.max(1, Math.floor(containerWidth / charWidth));
   }, [containerWidth, charWidth]);
@@ -71,11 +70,11 @@ export const InfiniteType: React.FC = () => {
 
   useEffect(() => {
     if (!isRunning) return;
-    if (startWidth.current === 0) return;
-    if (Math.abs(containerWidth - startWidth.current) > RESIZE_THRESHOLD) {
+    if (initialContainerWidthRef.current === 0) return;
+    if (Math.abs(containerWidth - initialContainerWidthRef.current) > RESIZE_THRESHOLD_PX) {
       stop();
-      if (!resizeWarned.current) {
-        resizeWarned.current = true;
+      if (!hasWarnedAboutResizeRef.current) {
+        hasWarnedAboutResizeRef.current = true;
         showToast(
           'warning',
           <MdWarningAmber size={20} />,
@@ -99,41 +98,44 @@ export const InfiniteType: React.FC = () => {
       inputEl.style.transform = `translate(${rect.left}px, ${Math.max(0, rect.top)}px)`;
     });
     return () => cancelAnimationFrame(raf);
-  }, [activeLineIndex, activeTypedLen, isRunning]);
+  }, [activeLineIndex, activeTypedLength, isRunning]);
 
   const handleStart = () => {
-    let cw = containerWidth;
-    let pw = charWidth;
+    let measuredContainerWidth = containerWidth;
+    let measuredCharWidth = charWidth;
 
     if (containerRef.current) {
       const w = containerRef.current.getBoundingClientRect().width;
-      if (w > 0) cw = w;
+      if (w > 0) measuredContainerWidth = w;
     }
     if (probeRef.current) {
       const w = probeRef.current.getBoundingClientRect().width;
-      if (w > 0) pw = w;
+      if (w > 0) measuredCharWidth = w;
     }
 
-    if (cw > 0 && pw > 0) {
-      setContainerWidth(cw);
-      setCharWidth(pw);
+    if (measuredContainerWidth > 0 && measuredCharWidth > 0) {
+      setContainerWidth(measuredContainerWidth);
+      setCharWidth(measuredCharWidth);
     }
 
-    const mc = cw > 0 && pw > 0 ? Math.max(1, Math.floor(cw / pw)) : 40;
+    const computedMaxChars =
+      measuredContainerWidth > 0 && measuredCharWidth > 0
+        ? Math.max(1, Math.floor(measuredContainerWidth / measuredCharWidth))
+        : 40;
 
-    startWidth.current = cw;
-    resizeWarned.current = false;
-    start(mc);
+    initialContainerWidthRef.current = measuredContainerWidth;
+    hasWarnedAboutResizeRef.current = false;
+    start(computedMaxChars);
     inputRef.current?.focus({ preventScroll: true });
   };
 
   const elapsedMs = state.firstKeyAt > 0 ? Date.now() - state.firstKeyAt : 0;
-  const elapsedMin = elapsedMs / 60000;
-  const cpm = elapsedMin > 0 ? Math.round(state.hits / elapsedMin) : 0;
+  const elapsedMinutes = elapsedMs / 60000;
+  const charsPerMinute = elapsedMinutes > 0 ? Math.round(state.hits / elapsedMinutes) : 0;
   const accuracy = state.keys === 0 ? 100 : (state.hits / state.keys) * 100;
 
   const stats = {
-    cpm,
+    cpm: charsPerMinute,
     acc: accuracy.toFixed(1),
     keys: state.keys,
     errors: state.misses,
@@ -200,7 +202,7 @@ export const InfiniteType: React.FC = () => {
     }
     if (key === 'Enter') {
       e.preventDefault();
-      enter(maxChars);
+      enter(maxCharsPerLine);
       return;
     }
   };
