@@ -273,6 +273,14 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
             .cursor-bar-hidden {
               display: none;
             }
+            .infinite-type-scroll {
+              scrollbar-width: thin;
+              scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+              scrollbar-gutter: stable;
+            }
+            .dark .infinite-type-scroll {
+              scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+            }
           `,
         }}
       />
@@ -280,7 +288,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
         <div
           ref={viewportRef}
           onScroll={handleScroll}
-          className="relative px-6 py-4 overflow-y-auto font-mono text-lg leading-[46px]"
+          className="infinite-type-scroll relative px-6 py-4 overflow-y-auto font-mono text-lg leading-[46px]"
           style={{
             height: `${viewportHeight}px`,
             touchAction: 'pan-y',
