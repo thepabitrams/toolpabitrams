@@ -13,6 +13,7 @@ const SCROLL_TRIGGER_BOTTOM_RATIO  = 0.35;
 const PROGRAMMATIC_SCROLL_LOCK_MS  = 600;
 const USER_SCROLL_COOLDOWN_MS      = 1200;
 const HEIGHT_SETTLE_MS             = 300;
+const FOCUS_SNAP_DELAY_MS          = 100;
 
 interface ViewportProps {
   state: Session;
@@ -203,6 +204,19 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
 
     return () => window.clearTimeout(timeout);
   }, [viewportHeight, isRunning]);
+
+  useEffect(() => {
+    if (!isRunning) return;
+    if (!isFocused) return;
+    if (userScrollingRef.current) return;
+
+    const timeout = window.setTimeout(() => {
+      if (userScrollingRef.current) return;
+      scrollActiveLineIntoView('auto');
+    }, FOCUS_SNAP_DELAY_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [isFocused, isRunning, viewportHeight]);
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
   const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
