@@ -12,6 +12,7 @@ const SCROLL_TRIGGER_TOP_RATIO     = 0.10;
 const SCROLL_TRIGGER_BOTTOM_RATIO  = 0.35;
 const PROGRAMMATIC_SCROLL_LOCK_MS  = 600;
 const USER_SCROLL_COOLDOWN_MS      = 1200;
+const HEIGHT_SETTLE_MS             = 300;
 
 interface ViewportProps {
   state: Session;
@@ -72,18 +73,22 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     const updateHeight = () => {
       const el = viewportRef.current;
       if (!el) return;
-
       const rect = el.getBoundingClientRect();
 
+      let available: number;
       if (vv) {
-        const available = vv.height - rect.top - VIEWPORT_BOTTOM_MARGIN;
-        const clamped = Math.max(MIN_VIEWPORT_HEIGHT, Math.min(DEFAULT_VIEWPORT_HEIGHT, available));
-        setViewportHeight(clamped);
+        const visibleBottom = vv.offsetTop + vv.height;
+        available = visibleBottom - rect.top - VIEWPORT_BOTTOM_MARGIN;
       } else {
-        const available = window.innerHeight - rect.top - VIEWPORT_BOTTOM_MARGIN;
-        const clamped = Math.max(MIN_VIEWPORT_HEIGHT, Math.min(DEFAULT_VIEWPORT_HEIGHT, available));
-        setViewportHeight(clamped);
+        available = window.innerHeight - rect.top - VIEWPORT_BOTTOM_MARGIN;
       }
+
+      const clamped = Math.max(
+        MIN_VIEWPORT_HEIGHT,
+        Math.min(DEFAULT_VIEWPORT_HEIGHT, available)
+      );
+
+      setViewportHeight((prev) => (Math.abs(prev - clamped) > 1 ? clamped : prev));
     };
 
     updateHeight();
@@ -94,6 +99,8 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     }
     window.addEventListener('resize', updateHeight);
     window.addEventListener('orientationchange', updateHeight);
+    document.addEventListener('focusin', updateHeight);
+    document.addEventListener('focusout', updateHeight);
 
     return () => {
       if (vv) {
@@ -102,6 +109,8 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
       }
       window.removeEventListener('resize', updateHeight);
       window.removeEventListener('orientationchange', updateHeight);
+      document.removeEventListener('focusin', updateHeight);
+      document.removeEventListener('focusout', updateHeight);
     };
   }, []);
 
@@ -146,6 +155,23 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     }, USER_SCROLL_COOLDOWN_MS);
   };
 
+  const scrollActiveLineIntoView = (behavior: ScrollBehavior) => {
+    const vp = viewportRef.current;
+    const line = activeLineRef.current;
+    if (!vp || !line) return;
+
+    const lineTop = line.offsetTop;
+    const offsetPx = vp.clientHeight * ACTIVE_LINE_TOP_OFFSET_RATIO;
+    const targetScrollTop = lineTop - offsetPx;
+
+    isProgrammaticScrollRef.current = true;
+    vp.scrollTo({ top: Math.max(0, targetScrollTop), behavior });
+
+    window.setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, PROGRAMMATIC_SCROLL_LOCK_MS);
+  };
+
   useLayoutEffect(() => {
     if (!isRunning) return;
     if (userScrollingRef.current) return;
@@ -162,18 +188,21 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
     const triggerBottom = vpTop + vp.clientHeight * SCROLL_TRIGGER_BOTTOM_RATIO;
 
     if (lineTop < triggerTop || lineBottom > triggerBottom) {
-      isProgrammaticScrollRef.current = true;
-
-      const offsetPx = vp.clientHeight * ACTIVE_LINE_TOP_OFFSET_RATIO;
-      const targetScrollTop = lineTop - offsetPx;
-
-      vp.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
-
-      window.setTimeout(() => {
-        isProgrammaticScrollRef.current = false;
-      }, PROGRAMMATIC_SCROLL_LOCK_MS);
+      scrollActiveLineIntoView('smooth');
     }
-  }, [lines.length, activeTypedLen, isRunning, viewportHeight]);
+  }, [lines.length, activeTypedLen, isRunning]);
+
+  useEffect(() => {
+    if (!isRunning) return;
+    if (userScrollingRef.current) return;
+
+    const timeout = window.setTimeout(() => {
+      if (userScrollingRef.current) return;
+      scrollActiveLineIntoView('auto');
+    }, HEIGHT_SETTLE_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [viewportHeight, isRunning]);
 
   const cursorClass = isFocused ? 'cursor-blink' : 'cursor-hidden';
   const endCursorClass = isFocused ? 'cursor-bar' : 'cursor-bar-hidden';
@@ -262,7 +291,7 @@ export const Viewport: React.FC<ViewportProps> = React.memo(({
             height: `${viewportHeight}px`,
             touchAction: 'pan-y',
             overscrollBehavior: 'auto',
-            transition: 'height 150ms ease-out',
+            transition: 'height 200ms ease-out',
           }}
         >
           <span
