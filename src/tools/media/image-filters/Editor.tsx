@@ -1,13 +1,13 @@
-// src/tools/image/image-filters/IFCard.tsx
+// src/tools/image/image-filters/Editor.tsx
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/core/components/ui/Card';
 import { Container } from '@/core/components/ui/Container';
 import { useFileStore } from '@/core/store/fileStore';
-import { IFControls } from './IFControls';
-import { useIFLogic } from './useIFLogic';
+import { Controls } from './Controls';
+import { useImageFilters } from './useImageFilters';
 import type { FileRef } from '@/core/store/fileStore';
 
-interface IFCardProps {
+interface EditorProps {
   file: FileRef | null;
   onProcess: (blob: Blob) => Promise<void>;
   className?: string;
@@ -16,7 +16,7 @@ interface IFCardProps {
   padding?: number;
 }
 
-export const IFCard: React.FC<IFCardProps> = ({
+export const Editor: React.FC<EditorProps> = ({
   file,
   onProcess,
   className = '',
@@ -35,7 +35,7 @@ export const IFCard: React.FC<IFCardProps> = ({
     hasChanges,
     getCSSFilterString,
     processImage,
-  } = useIFLogic();
+  } = useImageFilters();
 
   useEffect(() => {
     let isMounted = true;
@@ -115,7 +115,7 @@ export const IFCard: React.FC<IFCardProps> = ({
           />
         </div>
 
-        <IFControls
+        <Controls
           filters={filters}
           onUpdate={updateFilter}
           onReset={resetFilters}

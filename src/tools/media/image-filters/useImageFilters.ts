@@ -1,4 +1,4 @@
-// src/tools/image/image-filters/useIFLogic.ts
+// src/tools/image/image-filters/useImageFilters.ts
 import { useState, useCallback, useMemo } from 'react';
 import { readDpi } from '@/entities/image/metadata';
 import { writeDpi } from '@/entities/image/metadata';
@@ -8,7 +8,7 @@ import { generateCSSFilter } from './core/cssGenerator';
 import { processCanvas } from './core/canvasProcessor';
 import type { FilterState } from './core/types';
 
-export interface IFLogicReturn {
+export interface UseImageFiltersReturn {
   filters: FilterState;
   updateFilter: (key: keyof FilterState, value: any) => void;
   resetFilters: () => void;
@@ -17,7 +17,7 @@ export interface IFLogicReturn {
   processImage: (file: File) => Promise<Blob>;
 }
 
-export function useIFLogic(): IFLogicReturn {
+export function useImageFilters(): UseImageFiltersReturn {
   const [filters, setFilters] = useState<FilterState>(FILTER_DEFAULTS);
 
   const updateFilter = useCallback((key: keyof FilterState, value: any) => {

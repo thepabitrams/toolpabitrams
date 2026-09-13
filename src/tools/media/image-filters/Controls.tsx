@@ -1,15 +1,24 @@
-// src/tools/image/image-filters/IFControls.tsx
+// src/tools/image/image-filters/Controls.tsx
 import React from 'react';
 import { FiRotateCcw } from 'react-icons/fi';
+import {
+  MdWbSunny,
+  MdContrast,
+  MdOpacity,
+  MdBlurOn,
+  MdDeviceThermostat,
+  MdCenterFocusStrong,
+  MdBrightnessHigh,
+  MdBrightnessLow,
+} from 'react-icons/md';
 import { IconButton } from '@/core/components/ui/IconButton';
 import { Button } from '@/core/components/ui/Button';
 import { Container } from '@/core/components/ui/Container';
-import { IFSlider } from './components/IFSlider';
-import { IFPresetButton } from './components/IFPresetButton';
+import { Slider } from './Slider';
 import type { FilterState } from './core/types';
 import { FILTER_RANGES } from './core/constants';
 
-interface IFControlsProps {
+interface ControlsProps {
   filters: FilterState;
   onUpdate: (key: keyof FilterState, value: any) => void;
   onReset: () => void;
@@ -18,7 +27,7 @@ interface IFControlsProps {
   isExporting: boolean;
 }
 
-export const IFControls: React.FC<IFControlsProps> = ({
+export const Controls: React.FC<ControlsProps> = ({
   filters,
   onUpdate,
   onReset,
@@ -33,7 +42,8 @@ export const IFControls: React.FC<IFControlsProps> = ({
           Live Preview (CSS)
         </div>
 
-        <IFSlider
+        <Slider
+          icon={<MdWbSunny size={16} />}
           label="Brightness"
           value={filters.brightness}
           min={FILTER_RANGES.brightness.min}
@@ -43,7 +53,8 @@ export const IFControls: React.FC<IFControlsProps> = ({
           onChange={(val) => onUpdate('brightness', val)}
         />
 
-        <IFSlider
+        <Slider
+          icon={<MdContrast size={16} />}
           label="Contrast"
           value={filters.contrast}
           min={FILTER_RANGES.contrast.min}
@@ -53,7 +64,8 @@ export const IFControls: React.FC<IFControlsProps> = ({
           onChange={(val) => onUpdate('contrast', val)}
         />
 
-        <IFSlider
+        <Slider
+          icon={<MdOpacity size={16} />}
           label="Saturation"
           value={filters.saturation}
           min={FILTER_RANGES.saturation.min}
@@ -67,92 +79,104 @@ export const IFControls: React.FC<IFControlsProps> = ({
           Export Only (Canvas)
         </div>
 
-        <IFSlider
+        <Slider
+          icon={<MdBlurOn size={16} />}
           label="Blur"
           value={filters.blur}
           min={FILTER_RANGES.blur.min}
           max={FILTER_RANGES.blur.max}
           step={0.5}
           suffix="px"
-          note="export"
           onChange={(val) => onUpdate('blur', val)}
         />
 
-        <IFSlider
+        <Slider
+          icon={<MdDeviceThermostat size={16} />}
           label="Temperature"
           value={filters.temperature}
           min={FILTER_RANGES.temperature.min}
           max={FILTER_RANGES.temperature.max}
           step={1}
           suffix="%"
-          note="export"
           onChange={(val) => onUpdate('temperature', val)}
         />
 
-        <IFSlider
+        <Slider
+          icon={<MdCenterFocusStrong size={16} />}
           label="Sharpness"
           value={filters.sharpness}
           min={FILTER_RANGES.sharpness.min}
           max={FILTER_RANGES.sharpness.max}
           step={1}
           suffix="%"
-          note="export"
           onChange={(val) => onUpdate('sharpness', val)}
         />
 
-        <IFSlider
+        <Slider
+          icon={<MdBrightnessHigh size={16} />}
           label="Highlights"
           value={filters.highlights}
           min={FILTER_RANGES.highlights.min}
           max={FILTER_RANGES.highlights.max}
           step={1}
           suffix="%"
-          note="export"
           onChange={(val) => onUpdate('highlights', val)}
         />
 
-        <IFSlider
+        <Slider
+          icon={<MdBrightnessLow size={16} />}
           label="Shadows"
           value={filters.shadows}
           min={FILTER_RANGES.shadows.min}
           max={FILTER_RANGES.shadows.max}
           step={1}
           suffix="%"
-          note="export"
           onChange={(val) => onUpdate('shadows', val)}
         />
 
         <div className="flex flex-wrap gap-1.5 pt-2 border-t border-gray-200 dark:border-gray-700">
-          <IFPresetButton
-            label="Grayscale"
-            active={filters.grayscale}
+          <Button
+            variant={filters.grayscale ? 'primary' : 'secondary'}
+            className="px-3 py-1.5 text-xs"
             onClick={() => onUpdate('grayscale', !filters.grayscale)}
-          />
-          <IFPresetButton
-            label="Sepia"
-            active={filters.sepia}
+          >
+            Grayscale
+          </Button>
+          <Button
+            variant={filters.sepia ? 'primary' : 'secondary'}
+            className="px-3 py-1.5 text-xs"
             onClick={() => onUpdate('sepia', !filters.sepia)}
-          />
-          <IFPresetButton
-            label="Vintage"
-            active={filters.vintage}
+          >
+            Sepia
+          </Button>
+          <Button
+            variant={filters.vintage ? 'primary' : 'secondary'}
+            className="px-3 py-1.5 text-xs"
             onClick={() => onUpdate('vintage', !filters.vintage)}
-          />
-          <IFPresetButton
-            label="Noir"
-            active={filters.noir}
+          >
+            Vintage
+          </Button>
+          <Button
+            variant={filters.noir ? 'primary' : 'secondary'}
+            className="px-3 py-1.5 text-xs"
             onClick={() => onUpdate('noir', !filters.noir)}
-          />
-          <IFPresetButton
-            label="Vignette"
-            active={filters.vignette}
+          >
+            Noir
+          </Button>
+          <Button
+            variant={filters.vignette ? 'primary' : 'secondary'}
+            className="px-3 py-1.5 text-xs"
             onClick={() => onUpdate('vignette', !filters.vignette)}
-          />
-          <IFPresetButton
-            label="HDR"
-            active={filters.hdr}
+          >
+            Vignette
+          </Button>
+          <Button
+            variant={filters.hdr ? 'primary' : 'secondary'}
+            className="px-3 py-1.5 text-xs"
             onClick={() => onUpdate('hdr', !filters.hdr)}
-          />
+          >
+            HDR
+          </Button>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
