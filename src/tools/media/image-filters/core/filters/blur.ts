@@ -1,51 +1,31 @@
 // src/tools/image/image-filters/core/filters/blur.ts
 import { clamp } from '../utils/clamp';
 
-/**
- * FAST SEPARABLE GAUSSIAN BLUR
- * 
- * 1. Horizontal blur pass
- * 2. Vertical blur pass
- * 
- * Same result as 2D convolution, 10x faster.
- * Kernel size is capped for performance.
- */
 export function applyBlur(
-  data: Uint8ClampedArray,
+  pixels: Uint8ClampedArray,
   width: number,
   height: number,
   radius: number
 ): void {
   if (radius <= 0) return;
 
-  // ─── BOOST RADIUS (for strong blur) ──────────────────
   const STRONG_BLUR_BOOST = 3.0;
   const boostedRadius = radius * STRONG_BLUR_BOOST;
 
-  // ─── KERNEL SIZE (capped for performance) ────────────
-  // Max kernel size = 31px (blur radius ~10px)
-  // This is enough for most use cases
   const rawSize = Math.ceil(boostedRadius * 2) * 2 + 1;
-  const kernelSize = Math.min(rawSize, 31); // Cap at 31
+  const kernelSize = Math.min(rawSize, 31);
   const half = Math.floor(kernelSize / 2);
 
-  // Generate 1D Gaussian kernel
   const sigma = boostedRadius * 0.4;
   const kernel = generate1DGaussianKernel(kernelSize, sigma);
 
-  // ─── SEPARABLE BLUR ──────────────────────────────────
-  // Pass 1: Horizontal blur
-  const tempData = new Uint8ClampedArray(data);
-  applyHorizontalBlur(tempData, data, width, height, kernel, half);
+  const tempData = new Uint8ClampedArray(pixels);
+  applyHorizontalBlur(tempData, pixels, width, height, kernel, half);
 
-  // Pass 2: Vertical blur (using the horizontally blurred data)
-  const tempData2 = new Uint8ClampedArray(data);
-  applyVerticalBlur(tempData2, data, width, height, kernel, half);
+  const tempData2 = new Uint8ClampedArray(pixels);
+  applyVerticalBlur(tempData2, pixels, width, height, kernel, half);
 }
 
-/**
- * Generate 1D Gaussian kernel
- */
 function generate1DGaussianKernel(size: number, sigma: number): number[] {
   const kernel: number[] = [];
   const half = Math.floor(size / 2);
@@ -64,9 +44,6 @@ function generate1DGaussianKernel(size: number, sigma: number): number[] {
   return kernel;
 }
 
-/**
- * Horizontal blur pass
- */
 function applyHorizontalBlur(
   src: Uint8ClampedArray,
   dst: Uint8ClampedArray,
@@ -113,9 +90,6 @@ function applyHorizontalBlur(
   }
 }
 
-/**
- * Vertical blur pass
- */
 function applyVerticalBlur(
   src: Uint8ClampedArray,
   dst: Uint8ClampedArray,

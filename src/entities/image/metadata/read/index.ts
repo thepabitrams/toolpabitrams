@@ -1,4 +1,5 @@
 // src/entities/image/metadata/read/index.ts
 
-export { readDimensions } from './dimensions';
-export { readDpi } from './dpi';
+export { readExif } from './readExif';
+export { readDimensions, extractDimensions } from './dimensions';
+export { readDpi, extractDpi } from './dpi';

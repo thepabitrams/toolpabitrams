@@ -3,7 +3,7 @@ import { clamp } from '../utils/clamp';
 import { convolution } from '../utils/convolution';
 
 export function applySharpen(
-  data: Uint8ClampedArray,
+  pixels: Uint8ClampedArray,
   width: number,
   height: number,
   strength: number
@@ -17,5 +17,5 @@ export function applySharpen(
     0, -1 * factor, 0
   ];
 
-  convolution(data, width, height, kernel, 3);
+  convolution(pixels, width, height, kernel, 3);
 }

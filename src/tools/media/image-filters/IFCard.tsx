@@ -37,28 +37,25 @@ export const IFCard: React.FC<IFCardProps> = ({
     processImage,
   } = useIFLogic();
 
-  // ─── Load image ──────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
     let objectUrl: string | null = null;
 
-    const loadImage = async () => {
+    const loadPreview = async () => {
       if (!file) {
         setImageUrl(null);
         return;
       }
       try {
-        const fileObj = await readFile(file.storageKey);
-        if (fileObj && isMounted) {
-          objectUrl = URL.createObjectURL(fileObj);
+        const resolvedFile = await readFile(file.storageKey);
+        if (resolvedFile && isMounted) {
+          objectUrl = URL.createObjectURL(resolvedFile);
           setImageUrl(objectUrl);
         }
-      } catch {
-        // silent
-      }
+      } catch {}
     };
 
-    loadImage();
+    loadPreview();
 
     return () => {
       isMounted = false;
@@ -66,7 +63,6 @@ export const IFCard: React.FC<IFCardProps> = ({
     };
   }, [file, readFile]);
 
-  // ─── Handle Export ───────────────────────────────────────
   const handleApply = async () => {
     if (!file || isExporting) return;
     setIsExporting(true);
@@ -97,7 +93,6 @@ export const IFCard: React.FC<IFCardProps> = ({
   return (
     <Container className={`px-0 flex-1 ${className}`} style={{ minWidth, minHeight, padding }}>
       <Card className="overflow-hidden p-0">
-        {/* ─── Gray Container ─── */}
         <div
           className="relative w-full aspect-square min-h-[300px] sm:min-h-[400px] bg-gray-100 dark:bg-gray-800"
           style={{

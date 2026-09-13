@@ -2,7 +2,7 @@
 import { applyContrast } from './contrast';
 import { applySaturation } from './saturation';
 
-export function applyHDR(data: Uint8ClampedArray): void {
-  applyContrast(data, 130);
-  applySaturation(data, 120);
+export function applyHDR(pixels: Uint8ClampedArray): void {
+  applyContrast(pixels, 130);
+  applySaturation(pixels, 120);
 }

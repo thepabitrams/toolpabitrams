@@ -3,7 +3,6 @@ import React from 'react';
 
 interface IFSliderProps {
   label: string;
-  keyName: string;
   value: number;
   min: number;
   max: number;
@@ -23,9 +22,9 @@ export const IFSlider: React.FC<IFSliderProps> = React.memo(({
   note = '',
   onChange,
 }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    onChange(val);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = parseFloat(event.target.value);
+    onChange(nextValue);
   };
 
   return (

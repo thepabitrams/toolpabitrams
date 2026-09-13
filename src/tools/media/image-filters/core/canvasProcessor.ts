@@ -15,102 +15,75 @@ import { applyNoir } from './filters/noir';
 import { applyVintage } from './filters/vintage';
 import { applyHDR } from './filters/hdr';
 
-/**
- * Process canvas for export only.
- * 
- * BLUR IS APPLIED HERE (EXPORT ONLY)
- * CSS preview does NOT show blur.
- * 
- * Performance optimized: ONE getImageData + ONE putImageData.
- */
 export function processCanvas(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
   img: HTMLImageElement,
   filters: FilterState
 ): void {
-  const w = img.width;
-  const h = img.height;
+  const width = img.width;
+  const height = img.height;
 
-  // ─── STEP 1: Draw the original image ──────────────────
-  ctx.drawImage(img, 0, 0, w, h);
+  ctx.drawImage(img, 0, 0, width, height);
 
-  // ─── STEP 2: Get pixel data (ONCE) ────────────────────
-  const imageData = ctx.getImageData(0, 0, w, h);
-  const { data } = imageData;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const pixels = imageData.data;
 
-  // ─── STEP 3: Apply ALL filters (ONLY ONCE) ──────────
-
-  // Temperature (CSS doesn't support)
   if (filters.temperature !== 0) {
-    applyTemperature(data, filters.temperature);
+    applyTemperature(pixels, filters.temperature);
   }
 
-  // Brightness
   if (filters.brightness !== 0) {
-    applyBrightness(data, filters.brightness);
+    applyBrightness(pixels, filters.brightness);
   }
 
-  // Contrast
   if (filters.contrast !== 100) {
-    applyContrast(data, filters.contrast);
+    applyContrast(pixels, filters.contrast);
   }
 
-  // Saturation
   if (filters.saturation !== 100) {
-    applySaturation(data, filters.saturation);
+    applySaturation(pixels, filters.saturation);
   }
 
-  // ─── BLUR APPLIED HERE (EXPORT ONLY) ──────────────────
   if (filters.blur > 0) {
-    applyBlur(data, w, h, filters.blur);
+    applyBlur(pixels, width, height, filters.blur);
   }
 
-  // Highlights (CSS doesn't support)
   if (filters.highlights !== 0) {
-    applyHighlights(data, filters.highlights);
+    applyHighlights(pixels, filters.highlights);
   }
 
-  // Shadows (CSS doesn't support)
   if (filters.shadows !== 0) {
-    applyShadows(data, filters.shadows);
+    applyShadows(pixels, filters.shadows);
   }
 
-  // Sharpen (CSS doesn't support)
   if (filters.sharpness > 0) {
-    applySharpen(data, w, h, filters.sharpness);
+    applySharpen(pixels, width, height, filters.sharpness);
   }
 
-  // Grayscale
   if (filters.grayscale) {
-    applyGrayscale(data);
+    applyGrayscale(pixels);
   }
 
-  // Sepia
   if (filters.sepia) {
-    applySepia(data);
+    applySepia(pixels);
   }
 
-  // Noir (grayscale + contrast)
   if (filters.noir) {
-    applyNoir(data);
+    applyNoir(pixels);
   }
 
-  // Vintage (sepia + contrast + vignette)
   if (filters.vintage) {
-    applyVintage(data, w, h);
+    applyVintage(pixels, width, height);
   }
 
-  // Vignette (CSS doesn't support)
   if (filters.vignette && !filters.vintage) {
-    applyVignette(data, w, h);
+    applyVignette(pixels, width, height);
   }
 
-  // HDR (contrast + saturation)
   if (filters.hdr) {
-    applyHDR(data);
+    applyHDR(pixels);
   }
 
-  // ─── STEP 4: Put processed data back (ONCE) ──────────
   ctx.putImageData(imageData, 0, 0);
 }

@@ -10,9 +10,15 @@ import { Stagger } from '@/core/motion/core/Stagger';
 import { zoomIn } from '@/core/motion/presets/zoomIn';
 import { Grid } from '@/core/components/ui/Grid';
 import { IFCard } from './IFCard';
-import { IMAGE_CONFIG } from '@/entities/image/services/config';
+import { IMAGE_CONFIG } from '@/entities/image';
+import type { FileRef } from '@/core/store/fileStore';
 
 const TOOL_ID = 'image-filters';
+
+async function syncToDB(originalFiles: FileRef[], processedFiles: FileRef[]): Promise<void> {
+  const { saveCatalog } = await import('@/core/services/indexeddb');
+  await saveCatalog({ original: originalFiles, process: processedFiles });
+}
 
 interface ImageFiltersToolProps {
   category: string;
@@ -35,7 +41,6 @@ function ImageFiltersTool({ category, toolId }: ImageFiltersToolProps) {
       try {
         await upload(files);
       } catch {
-        // silent
       } finally {
         setIsLoading(false);
       }
@@ -76,13 +81,13 @@ function ImageFiltersTool({ category, toolId }: ImageFiltersToolProps) {
         return;
       }
 
-      const processedFiles = list('process');
-      if (processedFiles.length === 0) {
+      const availableProcessedFiles = list('process');
+      if (availableProcessedFiles.length === 0) {
         alert('No processed files to promote');
         return;
       }
 
-      const latestName = processedFiles[processedFiles.length - 1]?.name;
+      const latestName = availableProcessedFiles[availableProcessedFiles.length - 1]?.name;
 
       const state = useFileStore.getState();
       const targetOriginals = state.original.filter(f => f.toolId === selectedToolId);
@@ -123,11 +128,6 @@ function ImageFiltersTool({ category, toolId }: ImageFiltersToolProps) {
 
   const hasFile = !!currentFile;
   const hasProcessed = !!latestProcessed;
-
-  async function syncToDB(original: any[], process: any[]) {
-    const { saveCatalog } = await import('@/core/services/indexeddb');
-    await saveCatalog({ original, process });
-  }
 
   return (
     <div className="w-full py-6 px-4 sm:px-6 lg:px-8">

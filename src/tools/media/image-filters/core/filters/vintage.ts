@@ -4,11 +4,11 @@ import { applyContrast } from './contrast';
 import { applyVignette } from './vignette';
 
 export function applyVintage(
-  data: Uint8ClampedArray,
+  pixels: Uint8ClampedArray,
   width: number,
   height: number
 ): void {
-  applySepia(data);
-  applyContrast(data, 120);
-  applyVignette(data, width, height);
+  applySepia(pixels);
+  applyContrast(pixels, 120);
+  applyVignette(pixels, width, height);
 }

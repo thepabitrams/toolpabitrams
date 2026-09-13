@@ -1,3 +1,4 @@
 // src/entities/image/metadata/write/index.ts
 
-export { writeDpi } from './dpi';
+export { writeExif } from './writeExif';
+export { writeDpi, buildDpiTags } from './dpi';
